@@ -33,6 +33,7 @@ const LandingPage = () => {
   const [designerName, setDesignerName] = useState('');
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [activeTab, setActiveTab] = useState('overview');
+  const [spotifyAuth, setSpotifyAuth] = useState(null);
   
   const designerNames = [
     '???'
@@ -63,6 +64,14 @@ const LandingPage = () => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    // Check if we have a Spotify auth code in localStorage
+    const authCode = localStorage.getItem('spotify_auth_code');
+    if (authCode) {
+      setSpotifyAuth(authCode);
+    }
+  }, []);
+
   const CountdownBox = ({ value, label }) => (
     <div className="bg-black/30 backdrop-blur-sm p-4 rounded-lg transform hover:scale-105 transition-transform duration-300">
       <p className="text-3xl font-bold">{value}</p>
@@ -83,6 +92,37 @@ const LandingPage = () => {
     <div className="text-center">
       <p className="text-4xl font-bold text-red-950">{number}</p>
       <p className="text-sm text-red-950/70">{text}</p>
+    </div>
+  );
+
+  const handleSpotifyLogin = async () => {
+    window.location.href = '/api/spotify';
+  };
+
+  const SpotifyAuthSection = () => (
+    <div className="py-12 px-4 bg-black/5 backdrop-blur-md">
+      <div className="max-w-4xl mx-auto text-center">
+        <div className="inline-flex items-center space-x-2 mb-8">
+          <Music className="w-6 h-6 text-red-950" />
+          <h2 className="text-3xl font-bold text-red-950">Connect with Spotify</h2>
+        </div>
+        <p className="text-xl text-red-950/80 mb-8">
+          {spotifyAuth 
+            ? "Your Spotify account is connected!" 
+            : "Link your Spotify account to enable music display and control features"}
+        </p>
+        {!spotifyAuth && (
+          <button
+            onClick={handleSpotifyLogin}
+            className="bg-[#1DB954] text-white px-8 py-3 rounded-lg font-medium 
+                     hover:bg-[#1ed760] transition-all duration-300
+                     transform hover:scale-105 flex items-center justify-center mx-auto space-x-2"
+          >
+            <Music className="w-5 h-5" />
+            <span>Connect Spotify</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -120,6 +160,9 @@ const LandingPage = () => {
             <Stats />
           </div>
         </div>
+
+        {/* Add SpotifyAuthSection before the Vision Section */}
+        <SpotifyAuthSection />
 
         {/* Vision Section */}
         <div className="py-24 px-4 bg-black/5 backdrop-blur-md">
