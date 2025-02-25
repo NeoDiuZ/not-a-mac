@@ -32,6 +32,7 @@ const AnimatedBackground = () => {
 const CurrentlyPlaying = ({ authToken }) => {
   const [trackInfo, setTrackInfo] = useState(null);
   const [error, setError] = useState(null);
+  const [currentToken, setCurrentToken] = useState(authToken);
 
   const refreshAccessToken = async () => {
     const refreshToken = localStorage.getItem('spotify_refresh_token');
@@ -50,6 +51,7 @@ const CurrentlyPlaying = ({ authToken }) => {
       if (data.access_token) {
         localStorage.setItem('spotify_access_token', data.access_token);
         localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
+        setCurrentToken(data.access_token);
         return data.access_token;
       }
     } catch (error) {
@@ -60,9 +62,9 @@ const CurrentlyPlaying = ({ authToken }) => {
 
   const getValidToken = async () => {
     const expiry = localStorage.getItem('spotify_token_expiry');
-    const currentToken = localStorage.getItem('spotify_access_token');
+    const storedToken = localStorage.getItem('spotify_access_token');
 
-    if (!expiry || !currentToken) return null;
+    if (!expiry || !storedToken) return null;
 
     // If token is expired or will expire in the next minute
     if (Date.now() > Number(expiry) - 60000) {
@@ -70,17 +72,17 @@ const CurrentlyPlaying = ({ authToken }) => {
       return newToken;
     }
 
-    return currentToken;
+    return storedToken;
   };
 
   useEffect(() => {
+    let isMounted = true;
+    let intervalId = null;
+
     const fetchNowPlaying = async () => {
       try {
         const validToken = await getValidToken();
-        if (!validToken) {
-          setError('Authentication expired');
-          return;
-        }
+        if (!validToken || !isMounted) return;
 
         const response = await fetch('/api/spotify/now-playing', {
           headers: {
@@ -93,6 +95,8 @@ const CurrentlyPlaying = ({ authToken }) => {
         }
         
         const data = await response.json();
+        if (!isMounted) return;
+
         if (data.error) {
           setError(data.error);
           return;
@@ -101,18 +105,26 @@ const CurrentlyPlaying = ({ authToken }) => {
         setError(null);
       } catch (error) {
         console.error('Error fetching now playing:', error);
-        setError('Failed to fetch current track');
+        if (isMounted) {
+          setError('Failed to fetch current track');
+        }
       }
     };
 
-    if (authToken) {
+    if (currentToken) {
       fetchNowPlaying();
-      const interval = setInterval(fetchNowPlaying, 5000);
-      return () => clearInterval(interval);
+      intervalId = setInterval(fetchNowPlaying, 5000);
     }
-  }, [authToken]);
 
-  if (!authToken) {
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [currentToken]); // Only depend on currentToken instead of authToken
+
+  if (!currentToken) {
     return null;
   }
 
