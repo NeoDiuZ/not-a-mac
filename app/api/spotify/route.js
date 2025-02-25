@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import querystring from 'querystring';
 
 export async function GET() {
-  const scope = 'user-read-currently-playing user-read-playback-state';
+  const scope = 'user-read-currently-playing user-read-playback-state user-read-private';
   
   const params = querystring.stringify({
     response_type: 'code',

@@ -11,7 +11,6 @@ function CallbackContent() {
   useEffect(() => {
     const handleCallback = async () => {
       const code = searchParams.get('code');
-      const state = searchParams.get('state');
       
       if (!code) {
         setStatus('Error: No authorization code received');
@@ -30,7 +29,11 @@ function CallbackContent() {
         const data = await response.json();
         
         if (data.access_token) {
-          localStorage.setItem('spotify_auth_code', data.access_token);
+          // Store both tokens
+          localStorage.setItem('spotify_access_token', data.access_token);
+          localStorage.setItem('spotify_refresh_token', data.refresh_token);
+          localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
+          
           setStatus('Authorization successful! Redirecting...');
           setTimeout(() => {
             router.push('/');

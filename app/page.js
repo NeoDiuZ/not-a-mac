@@ -33,12 +33,58 @@ const CurrentlyPlaying = ({ authToken }) => {
   const [trackInfo, setTrackInfo] = useState(null);
   const [error, setError] = useState(null);
 
+  const refreshAccessToken = async () => {
+    const refreshToken = localStorage.getItem('spotify_refresh_token');
+    if (!refreshToken) return null;
+
+    try {
+      const response = await fetch('/api/spotify/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+
+      const data = await response.json();
+      if (data.access_token) {
+        localStorage.setItem('spotify_access_token', data.access_token);
+        localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
+        return data.access_token;
+      }
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      return null;
+    }
+  };
+
+  const getValidToken = async () => {
+    const expiry = localStorage.getItem('spotify_token_expiry');
+    const currentToken = localStorage.getItem('spotify_access_token');
+
+    if (!expiry || !currentToken) return null;
+
+    // If token is expired or will expire in the next minute
+    if (Date.now() > Number(expiry) - 60000) {
+      const newToken = await refreshAccessToken();
+      return newToken;
+    }
+
+    return currentToken;
+  };
+
   useEffect(() => {
     const fetchNowPlaying = async () => {
       try {
+        const validToken = await getValidToken();
+        if (!validToken) {
+          setError('Authentication expired');
+          return;
+        }
+
         const response = await fetch('/api/spotify/now-playing', {
           headers: {
-            'Authorization': `Bearer ${authToken}`
+            'Authorization': `Bearer ${validToken}`
           }
         });
         
