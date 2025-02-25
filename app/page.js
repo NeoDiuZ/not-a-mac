@@ -31,6 +31,7 @@ const AnimatedBackground = () => {
 
 const CurrentlyPlaying = ({ authToken }) => {
   const [trackInfo, setTrackInfo] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchNowPlaying = async () => {
@@ -40,22 +41,41 @@ const CurrentlyPlaying = ({ authToken }) => {
             'Authorization': `Bearer ${authToken}`
           }
         });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch');
+        }
+        
         const data = await response.json();
+        if (data.error) {
+          setError(data.error);
+          return;
+        }
         setTrackInfo(data);
+        setError(null);
       } catch (error) {
         console.error('Error fetching now playing:', error);
+        setError('Failed to fetch current track');
       }
     };
 
     if (authToken) {
       fetchNowPlaying();
-      const interval = setInterval(fetchNowPlaying, 5000); // Poll every 5 seconds
+      const interval = setInterval(fetchNowPlaying, 5000);
       return () => clearInterval(interval);
     }
   }, [authToken]);
 
-  if (!authToken || !trackInfo || !trackInfo.isPlaying) {
+  if (!authToken) {
     return null;
+  }
+
+  if (error) {
+    return <div className="text-red-950/70">Error: {error}</div>;
+  }
+
+  if (!trackInfo || !trackInfo.isPlaying) {
+    return <div className="text-red-950/70">No track currently playing</div>;
   }
 
   return (

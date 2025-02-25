@@ -1,8 +1,15 @@
-export async function GET() {
+export async function GET(request) {
+  // Get the authorization header from the request
+  const authHeader = request.headers.get('authorization');
+  
+  if (!authHeader) {
+    return Response.json({ error: 'No authorization token provided' }, { status: 401 });
+  }
+
   try {
     const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
-        Authorization: `Bearer ${process.env.SPOTIFY_ACCESS_TOKEN}`,
+        Authorization: authHeader,
       },
     });
 
