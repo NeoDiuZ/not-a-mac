@@ -29,6 +29,57 @@ const AnimatedBackground = () => {
   );
 };
 
+const CurrentlyPlaying = ({ authToken }) => {
+  const [trackInfo, setTrackInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchNowPlaying = async () => {
+      try {
+        const response = await fetch('/api/spotify/now-playing', {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+        const data = await response.json();
+        setTrackInfo(data);
+      } catch (error) {
+        console.error('Error fetching now playing:', error);
+      }
+    };
+
+    if (authToken) {
+      fetchNowPlaying();
+      const interval = setInterval(fetchNowPlaying, 5000); // Poll every 5 seconds
+      return () => clearInterval(interval);
+    }
+  }, [authToken]);
+
+  if (!authToken || !trackInfo || !trackInfo.isPlaying) {
+    return null;
+  }
+
+  return (
+    <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-red-950/10 
+                    hover:border-red-950/20 transition-all duration-300 max-w-sm mx-auto">
+      <div className="flex items-center space-x-4">
+        {trackInfo.albumArt && (
+          <img 
+            src={trackInfo.albumArt} 
+            alt={trackInfo.album}
+            className="w-16 h-16 rounded-md"
+          />
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-red-950 font-medium truncate">{trackInfo.title}</p>
+          <p className="text-red-950/70 text-sm truncate">{trackInfo.artist}</p>
+          <p className="text-red-950/50 text-xs truncate">{trackInfo.album}</p>
+        </div>
+        <Music className="w-6 h-6 text-red-950/50 flex-shrink-0" />
+      </div>
+    </div>
+  );
+};
+
 const LandingPage = () => {
   const [designerName, setDesignerName] = useState('');
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -111,7 +162,7 @@ const LandingPage = () => {
             ? "Your Spotify account is connected!" 
             : "Link your Spotify account to enable music display and control features"}
         </p>
-        {!spotifyAuth && (
+        {!spotifyAuth ? (
           <button
             onClick={handleSpotifyLogin}
             className="bg-[#1DB954] text-white px-8 py-3 rounded-lg font-medium 
@@ -121,6 +172,8 @@ const LandingPage = () => {
             <Music className="w-5 h-5" />
             <span>Connect Spotify</span>
           </button>
+        ) : (
+          <CurrentlyPlaying authToken={spotifyAuth} />
         )}
       </div>
     </div>
