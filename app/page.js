@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Clock, ShoppingBag, Sparkles, Recycle, Bot, Lock, Music, Heart, Globe, Zap, Star, Award } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -34,6 +34,9 @@ const CurrentlyPlaying = ({ authToken }) => {
   const [trackInfo, setTrackInfo] = useState(null);
   const [error, setError] = useState(null);
   const [currentToken, setCurrentToken] = useState(authToken);
+  const lastFetchRef = useRef(0);
+  const minFetchInterval = 3000;
+  const trackInfoRef = useRef(null);
 
   const refreshAccessToken = async () => {
     const refreshToken = localStorage.getItem('spotify_refresh_token');
@@ -52,7 +55,6 @@ const CurrentlyPlaying = ({ authToken }) => {
       if (data.access_token) {
         localStorage.setItem('spotify_access_token', data.access_token);
         localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
-        setCurrentToken(data.access_token);
         return data.access_token;
       }
     } catch (error) {
@@ -67,7 +69,6 @@ const CurrentlyPlaying = ({ authToken }) => {
 
     if (!expiry || !storedToken) return null;
 
-    // If token is expired or will expire in the next minute
     if (Date.now() > Number(expiry) - 60000) {
       const newToken = await refreshAccessToken();
       return newToken;
@@ -78,9 +79,14 @@ const CurrentlyPlaying = ({ authToken }) => {
 
   useEffect(() => {
     let isMounted = true;
-    let intervalId = null;
+    let timeoutId = null;
 
     const fetchNowPlaying = async () => {
+      const now = Date.now();
+      if (now - lastFetchRef.current < minFetchInterval) {
+        return;
+      }
+
       try {
         const validToken = await getValidToken();
         if (!validToken || !isMounted) return;
@@ -102,8 +108,18 @@ const CurrentlyPlaying = ({ authToken }) => {
           setError(data.error);
           return;
         }
-        setTrackInfo(data);
-        setError(null);
+
+        // Compare with previous data using ref
+        const prevData = trackInfoRef.current;
+        const isNewData = JSON.stringify(data) !== JSON.stringify(prevData);
+        
+        if (isNewData) {
+          trackInfoRef.current = data;
+          setTrackInfo(data);
+          setError(null);
+        }
+
+        lastFetchRef.current = now;
       } catch (error) {
         console.error('Error fetching now playing:', error);
         if (isMounted) {
@@ -112,18 +128,22 @@ const CurrentlyPlaying = ({ authToken }) => {
       }
     };
 
-    if (currentToken) {
+    const startPolling = () => {
       fetchNowPlaying();
-      intervalId = setInterval(fetchNowPlaying, 5000);
+      timeoutId = setInterval(fetchNowPlaying, 5000);
+    };
+
+    if (currentToken) {
+      startPolling();
     }
 
     return () => {
       isMounted = false;
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (timeoutId) {
+        clearInterval(timeoutId);
       }
     };
-  }, [currentToken]); // Only depend on currentToken instead of authToken
+  }, [currentToken]);
 
   if (!currentToken) {
     return null;
@@ -164,6 +184,8 @@ const LandingPage = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [activeTab, setActiveTab] = useState('overview');
   const [spotifyAuth, setSpotifyAuth] = useState(null);
+  const [spotifyAuthUrl, setSpotifyAuthUrl] = useState('');
+  const hasLoadedUrl = React.useRef(false);
   
   const designerNames = [
     '???'
@@ -202,6 +224,22 @@ const LandingPage = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (!hasLoadedUrl.current && !spotifyAuthUrl) {
+      const getAuthUrl = async () => {
+        try {
+          const response = await fetch('/api/spotify/auth-url');
+          const data = await response.json();
+          setSpotifyAuthUrl(data.url);
+        } catch (error) {
+          console.error('Error getting auth URL:', error);
+        }
+      };
+      getAuthUrl();
+      hasLoadedUrl.current = true;
+    }
+  }, [spotifyAuthUrl]);
+
   const CountdownBox = ({ value, label }) => (
     <div className="bg-black/30 backdrop-blur-sm p-4 rounded-lg transform hover:scale-105 transition-transform duration-300">
       <p className="text-3xl font-bold">{value}</p>
@@ -229,74 +267,49 @@ const LandingPage = () => {
     window.location.href = '/api/spotify';
   };
 
-  const SpotifyAuthSection = () => {
-    const [authUrl, setAuthUrl] = useState('');
-
-    useEffect(() => {
-      // Get the authorization URL from our API
-      const getAuthUrl = async () => {
-        try {
-          const response = await fetch('/api/spotify/auth-url');
-          const data = await response.json();
-          setAuthUrl(data.url);
-        } catch (error) {
-          console.error('Error getting auth URL:', error);
-        }
-      };
-
-      getAuthUrl();
-    }, []);
-
-    return (
-      <div className="py-12 px-4 bg-black/5 backdrop-blur-md">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center space-x-2 mb-8">
-            <Music className="w-6 h-6 text-red-950" />
-            <h2 className="text-3xl font-bold text-red-950">Connect with Spotify</h2>
-          </div>
-          <p className="text-xl text-red-950/80 mb-8">
-            {spotifyAuth 
-              ? "Your Spotify account is connected!" 
-              : "Scan the QR code to connect your Spotify account"}
-          </p>
-          {!spotifyAuth ? (
-            <div className="flex flex-col items-center space-y-4">
+  const SpotifyAuthSection = () => (
+    <div className="py-12 px-4 bg-black/5 backdrop-blur-md">
+      <div className="max-w-4xl mx-auto text-center">
+        <div className="inline-flex items-center space-x-2 mb-8">
+          <Music className="w-6 h-6 text-red-950" />
+          <h2 className="text-3xl font-bold text-red-950">Connect with Spotify</h2>
+        </div>
+        <p className="text-xl text-red-950/80 mb-8">
+          {spotifyAuth 
+            ? "Your Spotify account is connected!" 
+            : "Scan the QR code to connect your Spotify account"}
+        </p>
+        {!spotifyAuth ? (
+          <div className="flex flex-col items-center space-y-4">
+            {spotifyAuthUrl && (
               <div className="bg-white p-4 rounded-xl shadow-lg">
                 <QRCodeSVG 
-                  value={authUrl}
+                  value={spotifyAuthUrl}
                   size={256}
                   level="H"
                   includeMargin={true}
-                  imageSettings={{
-                    src: "/spotify-icon.png",
-                    x: undefined,
-                    y: undefined,
-                    height: 40,
-                    width: 40,
-                    excavate: true,
-                  }}
                 />
               </div>
-              <p className="text-sm text-red-950/60">
-                Or click the button below
-              </p>
-              <button
-                onClick={handleSpotifyLogin}
-                className="bg-[#1DB954] text-white px-8 py-3 rounded-lg font-medium 
-                         hover:bg-[#1ed760] transition-all duration-300
-                         transform hover:scale-105 flex items-center justify-center mx-auto space-x-2"
-              >
-                <Music className="w-5 h-5" />
-                <span>Connect Spotify</span>
-              </button>
-            </div>
-          ) : (
-            <CurrentlyPlaying authToken={spotifyAuth} />
-          )}
-        </div>
+            )}
+            <p className="text-sm text-red-950/60">
+              Or click the button below
+            </p>
+            <button
+              onClick={handleSpotifyLogin}
+              className="bg-[#1DB954] text-white px-8 py-3 rounded-lg font-medium 
+                       hover:bg-[#1ed760] transition-all duration-300
+                       transform hover:scale-105 flex items-center justify-center mx-auto space-x-2"
+            >
+              <Music className="w-5 h-5" />
+              <span>Connect Spotify</span>
+            </button>
+          </div>
+        ) : (
+          <CurrentlyPlaying authToken={spotifyAuth} />
+        )}
       </div>
-    );
-  };
+    </div>
+  );
 
   return (
     <div className="min-h-screen text-white font-light relative antialiased">

@@ -9,8 +9,10 @@ export async function GET() {
     client_id: process.env.SPOTIFY_CLIENT_ID,
     scope: scope,
     redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-    state: Math.random().toString(36).substring(7) // Simple random state
+    state: Math.random().toString(36).substring(7) 
   });
 
   return NextResponse.redirect(`https://accounts.spotify.com/authorize?${params}`);
 } 
+
+
