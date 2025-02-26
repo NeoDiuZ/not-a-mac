@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { Clock, ShoppingBag, Sparkles, Recycle, Bot, Lock, Music, Heart, Globe, Zap, Star, Award } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 const AnimatedBackground = () => {
   return (
@@ -228,34 +229,74 @@ const LandingPage = () => {
     window.location.href = '/api/spotify';
   };
 
-  const SpotifyAuthSection = () => (
-    <div className="py-12 px-4 bg-black/5 backdrop-blur-md">
-      <div className="max-w-4xl mx-auto text-center">
-        <div className="inline-flex items-center space-x-2 mb-8">
-          <Music className="w-6 h-6 text-red-950" />
-          <h2 className="text-3xl font-bold text-red-950">Connect with Spotify</h2>
+  const SpotifyAuthSection = () => {
+    const [authUrl, setAuthUrl] = useState('');
+
+    useEffect(() => {
+      // Get the authorization URL from our API
+      const getAuthUrl = async () => {
+        try {
+          const response = await fetch('/api/spotify/auth-url');
+          const data = await response.json();
+          setAuthUrl(data.url);
+        } catch (error) {
+          console.error('Error getting auth URL:', error);
+        }
+      };
+
+      getAuthUrl();
+    }, []);
+
+    return (
+      <div className="py-12 px-4 bg-black/5 backdrop-blur-md">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center space-x-2 mb-8">
+            <Music className="w-6 h-6 text-red-950" />
+            <h2 className="text-3xl font-bold text-red-950">Connect with Spotify</h2>
+          </div>
+          <p className="text-xl text-red-950/80 mb-8">
+            {spotifyAuth 
+              ? "Your Spotify account is connected!" 
+              : "Scan the QR code to connect your Spotify account"}
+          </p>
+          {!spotifyAuth ? (
+            <div className="flex flex-col items-center space-y-4">
+              <div className="bg-white p-4 rounded-xl shadow-lg">
+                <QRCodeSVG 
+                  value={authUrl}
+                  size={256}
+                  level="H"
+                  includeMargin={true}
+                  imageSettings={{
+                    src: "/spotify-icon.png",
+                    x: undefined,
+                    y: undefined,
+                    height: 40,
+                    width: 40,
+                    excavate: true,
+                  }}
+                />
+              </div>
+              <p className="text-sm text-red-950/60">
+                Or click the button below
+              </p>
+              <button
+                onClick={handleSpotifyLogin}
+                className="bg-[#1DB954] text-white px-8 py-3 rounded-lg font-medium 
+                         hover:bg-[#1ed760] transition-all duration-300
+                         transform hover:scale-105 flex items-center justify-center mx-auto space-x-2"
+              >
+                <Music className="w-5 h-5" />
+                <span>Connect Spotify</span>
+              </button>
+            </div>
+          ) : (
+            <CurrentlyPlaying authToken={spotifyAuth} />
+          )}
         </div>
-        <p className="text-xl text-red-950/80 mb-8">
-          {spotifyAuth 
-            ? "Your Spotify account is connected!" 
-            : "Link your Spotify account to enable music display and control features"}
-        </p>
-        {!spotifyAuth ? (
-          <button
-            onClick={handleSpotifyLogin}
-            className="bg-[#1DB954] text-white px-8 py-3 rounded-lg font-medium 
-                     hover:bg-[#1ed760] transition-all duration-300
-                     transform hover:scale-105 flex items-center justify-center mx-auto space-x-2"
-          >
-            <Music className="w-5 h-5" />
-            <span>Connect Spotify</span>
-          </button>
-        ) : (
-          <CurrentlyPlaying authToken={spotifyAuth} />
-        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen text-white font-light relative antialiased">
