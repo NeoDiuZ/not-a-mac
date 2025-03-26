@@ -183,7 +183,6 @@ const LandingPage = () => {
   const [designerName, setDesignerName] = useState('');
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [activeTab, setActiveTab] = useState('overview');
-  const [spotifyAuth, setSpotifyAuth] = useState(null);
   const [spotifyAuthUrl, setSpotifyAuthUrl] = useState('');
   const hasLoadedUrl = React.useRef(false);
   
@@ -217,14 +216,6 @@ const LandingPage = () => {
   }, []);
 
   useEffect(() => {
-    // Check if we have a Spotify auth code in localStorage
-    const authCode = localStorage.getItem('spotify_auth_code');
-    if (authCode) {
-      setSpotifyAuth(authCode);
-    }
-  }, []);
-
-  useEffect(() => {
     if (!hasLoadedUrl.current && !spotifyAuthUrl) {
       const getAuthUrl = async () => {
         try {
@@ -239,52 +230,6 @@ const LandingPage = () => {
       hasLoadedUrl.current = true;
     }
   }, [spotifyAuthUrl]);
-
-  useEffect(() => {
-    let sessionId = null;
-    let pollInterval = null;
-
-    const setupAuthPolling = async () => {
-      try {
-        const response = await fetch('/api/spotify/auth-url');
-        const data = await response.json();
-        setSpotifyAuthUrl(data.url);
-        sessionId = data.sessionId;
-
-        // Start polling for auth status
-        pollInterval = setInterval(async () => {
-          try {
-            const statusResponse = await fetch(`/api/spotify/broadcast-auth?sessionId=${sessionId}`);
-            const statusData = await statusResponse.json();
-
-            if (statusData.accessToken) {
-              // Update local storage with the new tokens
-              localStorage.setItem('spotify_access_token', statusData.accessToken);
-              localStorage.setItem('spotify_refresh_token', statusData.refreshToken);
-              localStorage.setItem('spotify_token_expiry', Date.now() + (statusData.expiresIn * 1000));
-              
-              setSpotifyAuth(statusData.accessToken);
-              clearInterval(pollInterval);
-            }
-          } catch (error) {
-            console.error('Error polling auth status:', error);
-          }
-        }, 2000);
-      } catch (error) {
-        console.error('Error getting auth URL:', error);
-      }
-    };
-
-    if (!spotifyAuth && !spotifyAuthUrl) {
-      setupAuthPolling();
-    }
-
-    return () => {
-      if (pollInterval) {
-        clearInterval(pollInterval);
-      }
-    };
-  }, [spotifyAuth, spotifyAuthUrl]);
 
   const CountdownBox = ({ value, label }) => (
     <div className="bg-black/30 backdrop-blur-sm p-4 rounded-lg transform hover:scale-105 transition-transform duration-300">
@@ -337,52 +282,125 @@ const LandingPage = () => {
     }
   };
 
-  const SpotifyAuthSection = () => (
-    <div className="py-12 px-4 bg-black/5 backdrop-blur-md">
-      <div className="max-w-4xl mx-auto text-center">
-        <div className="inline-flex items-center space-x-2 mb-8">
-          <Music className="w-6 h-6 text-red-950" />
-          <h2 className="text-3xl font-bold text-red-950">Connect with Spotify</h2>
-        </div>
-        <p className="text-xl text-red-950/80 mb-8">
-          {spotifyAuth 
-            ? "Your Spotify account is connected!" 
-            : "Scan the QR code to connect your Spotify account"}
-        </p>
-        {!spotifyAuth ? (
-          <div className="flex flex-col items-center space-y-4">
-            {spotifyAuthUrl && (
-              <div 
-                className="bg-white p-4 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
-                onClick={handleQRCodeClick}
-              >
-                <QRCodeSVG 
-                  value={spotifyAuthUrl}
-                  size={256}
-                  level="H"
-                  includeMargin={true}
-                />
-              </div>
-            )}
-            <p className="text-sm text-red-950/60">
-              Or click the button below
-            </p>
-            <button
-              onClick={handleSpotifyLogin}
-              className="bg-[#1DB954] text-white px-8 py-3 rounded-lg font-medium 
-                       hover:bg-[#1ed760] transition-all duration-300
-                       transform hover:scale-105 flex items-center justify-center mx-auto space-x-2"
-            >
-              <Music className="w-5 h-5" />
-              <span>Connect Spotify</span>
-            </button>
+  const SpotifyAuthSection = () => {
+    // Move state and polling logic inside the component
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authToken, setAuthToken] = useState(null);
+    const pollIntervalRef = useRef(null);
+    const sessionIdRef = useRef(null);
+
+    // Setup polling and auth check
+    useEffect(() => {
+      const checkAuth = () => {
+        const accessToken = localStorage.getItem('spotify_access_token');
+        const tokenExpiry = localStorage.getItem('spotify_token_expiry');
+        
+        if (accessToken && tokenExpiry && Date.now() < Number(tokenExpiry)) {
+          setIsAuthenticated(true);
+          setAuthToken(accessToken);
+          return true;
+        }
+        return false;
+      };
+
+      // Initial auth check
+      if (checkAuth()) return;
+
+      // Setup polling for auth status
+      const setupAuthPolling = async () => {
+        try {
+          const response = await fetch('/api/spotify/auth-url');
+          const data = await response.json();
+          setSpotifyAuthUrl(data.url);
+          sessionIdRef.current = data.sessionId;
+
+          // Start polling
+          pollIntervalRef.current = setInterval(async () => {
+            try {
+              const statusResponse = await fetch(`/api/spotify/broadcast-auth?sessionId=${sessionIdRef.current}`);
+              const statusData = await statusResponse.json();
+
+              if (statusData.accessToken) {
+                // Update local storage
+                localStorage.setItem('spotify_access_token', statusData.accessToken);
+                localStorage.setItem('spotify_refresh_token', statusData.refreshToken);
+                localStorage.setItem('spotify_token_expiry', Date.now() + (statusData.expiresIn * 1000));
+                
+                setIsAuthenticated(true);
+                setAuthToken(statusData.accessToken);
+                
+                // Clear polling
+                if (pollIntervalRef.current) {
+                  clearInterval(pollIntervalRef.current);
+                  pollIntervalRef.current = null;
+                }
+              }
+            } catch (error) {
+              console.error('Error polling auth status:', error);
+            }
+          }, 2000);
+        } catch (error) {
+          console.error('Error getting auth URL:', error);
+        }
+      };
+
+      setupAuthPolling();
+
+      // Cleanup
+      return () => {
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
+      };
+    }, []); // Empty dependency array since we want this to run once
+
+    return (
+      <div className="py-12 px-4 bg-black/5 backdrop-blur-md">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center space-x-2 mb-8">
+            <Music className="w-6 h-6 text-red-950" />
+            <h2 className="text-3xl font-bold text-red-950">Connect with Spotify</h2>
           </div>
-        ) : (
-          <CurrentlyPlaying authToken={spotifyAuth} />
-        )}
+          <p className="text-xl text-red-950/80 mb-8">
+            {isAuthenticated 
+              ? "Your Spotify account is connected!" 
+              : "Scan the QR code to connect your Spotify account"}
+          </p>
+          {!isAuthenticated ? (
+            <div className="flex flex-col items-center space-y-4">
+              {spotifyAuthUrl && (
+                <div 
+                  className="bg-white p-4 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                  onClick={handleQRCodeClick}
+                >
+                  <QRCodeSVG 
+                    value={spotifyAuthUrl}
+                    size={256}
+                    level="H"
+                    includeMargin={true}
+                  />
+                </div>
+              )}
+              <p className="text-sm text-red-950/60">
+                Or click the button below
+              </p>
+              <button
+                onClick={handleSpotifyLogin}
+                className="bg-[#1DB954] text-white px-8 py-3 rounded-lg font-medium 
+                         hover:bg-[#1ed760] transition-all duration-300
+                         transform hover:scale-105 flex items-center justify-center mx-auto space-x-2"
+              >
+                <Music className="w-5 h-5" />
+                <span>Connect Spotify</span>
+              </button>
+            </div>
+          ) : (
+            <CurrentlyPlaying authToken={authToken} />
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen text-white font-light relative antialiased">
