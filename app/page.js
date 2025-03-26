@@ -240,6 +240,40 @@ const LandingPage = () => {
     }
   }, [spotifyAuthUrl]);
 
+  useEffect(() => {
+    // Check initial auth state
+    const checkAuth = () => {
+      const accessToken = localStorage.getItem('spotify_access_token');
+      const tokenExpiry = localStorage.getItem('spotify_token_expiry');
+      
+      if (accessToken && tokenExpiry && Date.now() < Number(tokenExpiry)) {
+        setSpotifyAuth(accessToken);
+      } else {
+        setSpotifyAuth(null);
+      }
+    };
+
+    // Check auth state initially
+    checkAuth();
+
+    // Listen for storage changes
+    const handleStorageChange = (e) => {
+      if (e.key === 'spotify_auth_success') {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Poll for auth changes every 2 seconds
+    const pollInterval = setInterval(checkAuth, 2000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(pollInterval);
+    };
+  }, []);
+
   const CountdownBox = ({ value, label }) => (
     <div className="bg-black/30 backdrop-blur-sm p-4 rounded-lg transform hover:scale-105 transition-transform duration-300">
       <p className="text-3xl font-bold">{value}</p>
@@ -264,7 +298,31 @@ const LandingPage = () => {
   );
 
   const handleSpotifyLogin = async () => {
-    window.location.href = '/api/spotify';
+    const width = 450;
+    const height = 730;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+
+    window.open(
+      '/api/spotify',
+      'Spotify Login',
+      `menubar=no,location=no,resizable=no,scrollbars=no,status=no, width=${width}, height=${height}, top=${top}, left=${left}`
+    );
+  };
+
+  const handleQRCodeClick = () => {
+    if (spotifyAuthUrl) {
+      const width = 450;
+      const height = 730;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2;
+
+      window.open(
+        spotifyAuthUrl,
+        'Spotify Login',
+        `menubar=no,location=no,resizable=no,scrollbars=no,status=no, width=${width}, height=${height}, top=${top}, left=${left}`
+      );
+    }
   };
 
   const SpotifyAuthSection = () => (
@@ -282,7 +340,10 @@ const LandingPage = () => {
         {!spotifyAuth ? (
           <div className="flex flex-col items-center space-y-4">
             {spotifyAuthUrl && (
-              <div className="bg-white p-4 rounded-xl shadow-lg">
+              <div 
+                className="bg-white p-4 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                onClick={handleQRCodeClick}
+              >
                 <QRCodeSVG 
                   value={spotifyAuthUrl}
                   size={256}

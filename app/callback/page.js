@@ -34,10 +34,10 @@ function CallbackContent() {
           localStorage.setItem('spotify_refresh_token', data.refresh_token);
           localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
           
-          setStatus('Authorization successful! Redirecting...');
-          setTimeout(() => {
-            router.push('/');
-          }, 1500);
+          // Broadcast auth success
+          localStorage.setItem('spotify_auth_success', Date.now().toString());
+          
+          setStatus('Authorization successful! You can close this window.');
         } else {
           throw new Error('No access token received');
         }

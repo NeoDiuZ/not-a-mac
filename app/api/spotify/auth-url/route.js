@@ -18,4 +18,6 @@ export async function GET() {
   const url = `https://accounts.spotify.com/authorize?${params}`;
   
   return NextResponse.json({ url });
+
 } 
+
