@@ -241,38 +241,50 @@ const LandingPage = () => {
   }, [spotifyAuthUrl]);
 
   useEffect(() => {
-    // Check initial auth state
-    const checkAuth = () => {
-      const accessToken = localStorage.getItem('spotify_access_token');
-      const tokenExpiry = localStorage.getItem('spotify_token_expiry');
-      
-      if (accessToken && tokenExpiry && Date.now() < Number(tokenExpiry)) {
-        setSpotifyAuth(accessToken);
-      } else {
-        setSpotifyAuth(null);
+    let sessionId = null;
+    let pollInterval = null;
+
+    const setupAuthPolling = async () => {
+      try {
+        const response = await fetch('/api/spotify/auth-url');
+        const data = await response.json();
+        setSpotifyAuthUrl(data.url);
+        sessionId = data.sessionId;
+
+        // Start polling for auth status
+        pollInterval = setInterval(async () => {
+          try {
+            const statusResponse = await fetch(`/api/spotify/broadcast-auth?sessionId=${sessionId}`);
+            const statusData = await statusResponse.json();
+
+            if (statusData.accessToken) {
+              // Update local storage with the new tokens
+              localStorage.setItem('spotify_access_token', statusData.accessToken);
+              localStorage.setItem('spotify_refresh_token', statusData.refreshToken);
+              localStorage.setItem('spotify_token_expiry', Date.now() + (statusData.expiresIn * 1000));
+              
+              setSpotifyAuth(statusData.accessToken);
+              clearInterval(pollInterval);
+            }
+          } catch (error) {
+            console.error('Error polling auth status:', error);
+          }
+        }, 2000);
+      } catch (error) {
+        console.error('Error getting auth URL:', error);
       }
     };
 
-    // Check auth state initially
-    checkAuth();
-
-    // Listen for storage changes
-    const handleStorageChange = (e) => {
-      if (e.key === 'spotify_auth_success') {
-        checkAuth();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Poll for auth changes every 2 seconds
-    const pollInterval = setInterval(checkAuth, 2000);
+    if (!spotifyAuth && !spotifyAuthUrl) {
+      setupAuthPolling();
+    }
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(pollInterval);
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
     };
-  }, []);
+  }, [spotifyAuth, spotifyAuthUrl]);
 
   const CountdownBox = ({ value, label }) => (
     <div className="bg-black/30 backdrop-blur-sm p-4 rounded-lg transform hover:scale-105 transition-transform duration-300">

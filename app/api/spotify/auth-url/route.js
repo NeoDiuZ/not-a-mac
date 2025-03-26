@@ -4,8 +4,9 @@ import querystring from 'querystring';
 export async function GET() {
   const scope = 'user-read-currently-playing user-read-playback-state user-read-private';
   
-  // Use a fixed state or generate one if it doesn't exist
-  const state = 'spotify-auth-state'; // Using a fixed state for consistency
+  // Generate a unique session ID
+  const sessionId = Math.random().toString(36).substring(2, 15);
+  const state = `spotify-auth-state-${sessionId}`; // Include session ID in state
   
   const params = querystring.stringify({
     response_type: 'code',
@@ -17,7 +18,6 @@ export async function GET() {
 
   const url = `https://accounts.spotify.com/authorize?${params}`;
   
-  return NextResponse.json({ url });
-
+  return NextResponse.json({ url, sessionId });
 } 
 

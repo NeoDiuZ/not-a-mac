@@ -5,12 +5,13 @@ import { useSearchParams, useRouter } from 'next/navigation';
 // Create a separate component for the callback logic
 function CallbackContent() {
   const [status, setStatus] = useState('Processing...');
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const handleCallback = async () => {
       const code = searchParams.get('code');
+      const state = searchParams.get('state');
+      const sessionId = state?.split('-').pop(); // Extract session ID from state
       
       if (!code) {
         setStatus('Error: No authorization code received');
@@ -29,13 +30,28 @@ function CallbackContent() {
         const data = await response.json();
         
         if (data.access_token) {
-          // Store both tokens
+          // Store tokens in localStorage
           localStorage.setItem('spotify_access_token', data.access_token);
           localStorage.setItem('spotify_refresh_token', data.refresh_token);
           localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
           
-          // Broadcast auth success
-          localStorage.setItem('spotify_auth_success', Date.now().toString());
+          // Broadcast success through a shared endpoint
+          try {
+            await fetch('/api/spotify/broadcast-auth', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                sessionId,
+                accessToken: data.access_token,
+                refreshToken: data.refresh_token,
+                expiresIn: data.expires_in
+              }),
+            });
+          } catch (error) {
+            console.error('Error broadcasting auth:', error);
+          }
           
           setStatus('Authorization successful! You can close this window.');
         } else {
@@ -48,7 +64,7 @@ function CallbackContent() {
     };
 
     handleCallback();
-  }, [searchParams, router]);
+  }, [searchParams]);
 
   return (
     <div className="text-center p-8 bg-white/10 backdrop-blur-md rounded-lg border border-red-950/10">
