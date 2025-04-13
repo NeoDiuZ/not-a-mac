@@ -2,11 +2,18 @@ import { NextResponse } from 'next/server';
 import querystring from 'querystring';
 
 export async function GET() {
+  const { searchParams } = new URL(request.url);
+  
+  // Extract the device ID (MAC) from the query parameter
+  const deviceId = searchParams.get('id');
+  if (!deviceId) {
+    return NextResponse.json({ error: 'Missing id parameter' }, { status: 400 });
+  }
+
   const scope = 'user-read-currently-playing user-read-playback-state user-read-private';
   
-  // Generate a unique session ID
-  const sessionId = Math.random().toString(36).substring(2, 15);
-  const state = `spotify-auth-state-${sessionId}`; // Include session ID in state
+  // Generate a session ID unique to the device
+  const state = `spotify-auth-state-${deviceId}`; // Include device ID in state
   
   const params = querystring.stringify({
     response_type: 'code',

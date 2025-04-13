@@ -1,7 +1,17 @@
 import { NextResponse } from 'next/server';
+import dataModel from '../../../models/dataModel';
 
 export async function POST(request) {
-  const { code } = await request.json();
+  const { searchParams } = new URL(request.url);
+  const code = searchParams.get('code');
+  const deviceId = searchParams.get('state');
+
+  if (!code || !deviceId) {
+    return NextResponse.json(
+      { error: 'Missing authorization code or device ID.' },
+      { status: 400 }
+    );
+  }
 
   const params = new URLSearchParams();
   params.append('grant_type', 'authorization_code');
@@ -21,6 +31,14 @@ export async function POST(request) {
     });
 
     const data = await response.json();
+
+    const refreshToken = data.refresh_token;
+    const accessToken = data.access_token;
+
+    console.log('Tokens generated:', { accessToken, refreshToken });
+
+    await dataModel.updateRefreshToken({ id: deviceId, refresh_token: refreshToken });
+
     return NextResponse.json(data);
   } catch (error) {
     console.error('Token exchange error:', error);
