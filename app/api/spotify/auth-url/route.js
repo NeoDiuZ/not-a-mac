@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import querystring from 'querystring';
 
-export async function GET() {
+export async function GET(request) {
   const { searchParams } = new URL(request.url);
   
   // Extract the device ID (MAC) from the query parameter
@@ -12,8 +12,8 @@ export async function GET() {
 
   const scope = 'user-read-currently-playing user-read-playback-state user-read-private';
   
-  // Generate a session ID unique to the device
-  const state = `spotify-auth-state-${deviceId}`; // Include device ID in state
+  // Use device ID as state to identify the device during callback
+  const state = deviceId;
   
   const params = querystring.stringify({
     response_type: 'code',
@@ -25,6 +25,6 @@ export async function GET() {
 
   const url = `https://accounts.spotify.com/authorize?${params}`;
   
-  return NextResponse.json({ url, sessionId });
+  return NextResponse.json({ url });
 } 
 

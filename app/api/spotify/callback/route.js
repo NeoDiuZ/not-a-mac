@@ -37,7 +37,7 @@ export async function POST(request) {
 
     console.log('Tokens generated:', { accessToken, refreshToken });
 
-    await dataModel.updateRefreshToken({ id: deviceId, refresh_token: refreshToken });
+    await dataModel.storeRefreshToken({ id: deviceId, refreshToken });
 
     return NextResponse.json(data);
   } catch (error) {

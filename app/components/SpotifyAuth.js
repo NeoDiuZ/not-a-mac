@@ -93,6 +93,9 @@ export default function SpotifyAuth() {
               <Music className="w-5 h-5" />
               <span>Connect Spotify</span>
             </button>
+            <p className="mt-8 text-sm text-red-950/60">
+              For device setup, <a href="/setup" className="text-red-950 underline hover:text-red-800">click here</a>
+            </p>
           </div>
         )}
       </div>
