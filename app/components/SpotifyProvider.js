@@ -42,4 +42,6 @@ export function SpotifyProvider({ children }) {
       {children}
     </SpotifyContext.Provider>
   );
-} 
+}
+
+// Manages Spotify authentication state 
