@@ -101,29 +101,22 @@ export default function Setup() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6 px-2">
-                {[0, 4, 8].map((groupStart) => (
-                  <div key={groupStart} className="flex gap-1.5 md:gap-2">
-                    {Array(4).fill(0).map((_, j) => {
-                      const index = groupStart + j;
-                      return (
-                        <input
-                          key={index}
-                          ref={inputRefs[index]}
-                          type="text" //added mobile responsiveness
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          maxLength={1}
-                          value={deviceId[index]}
-                          onChange={(e) => handleInputChange(index, e.target.value)}
-                          onKeyDown={(e) => handleKeyDown(index, e)}
-                          placeholder="0"
-                          className="w-7 h-9 md:w-8 md:h-10 text-center font-mono text-base rounded-md bg-white/70 border border-red-950/20 focus:border-red-950/60 focus:ring-1 focus:ring-red-950/30 focus:outline-none shadow-sm"
-                          disabled={isLoading}
-                        />
-                      );
-                    })}
-                  </div>
+              <div className="grid grid-cols-4 gap-2 md:grid-cols-none md:flex md:justify-center md:items-center md:gap-6 px-2">
+                {Array(12).fill(0).map((_, index) => (
+                  <input
+                    key={index}
+                    ref={inputRefs[index]}
+                    type="text" //added mobile responsiveness
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={1}
+                    value={deviceId[index]}
+                    onChange={(e) => handleInputChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    placeholder="0"
+                    className="w-12 h-12 md:w-8 md:h-10 text-center font-mono text-base rounded-md bg-white/70 border border-red-950/20 focus:border-red-950/60 focus:ring-1 focus:ring-red-950/30 focus:outline-none shadow-sm"
+                    disabled={isLoading}
+                  />
                 ))}
               </div>
               {error && <p className="mt-2 text-red-600 text-sm text-center">{error}</p>}
