@@ -4,21 +4,21 @@ import { useRouter } from 'next/navigation';
 import { Music, ArrowRight } from 'lucide-react';
 
 export default function Setup() {
-  const [deviceId, setDeviceId] = useState(['', '', '']);
+  const [deviceId, setDeviceId] = useState(Array(12).fill(''));
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const inputRefs = [useRef(null), useRef(null), useRef(null)];
+  const inputRefs = Array(12).fill(0).map(() => useRef(null));
 
   const handleInputChange = (index, value) => {
     if (!/^\d*$/.test(value)) return;
     
     const newDeviceId = [...deviceId];
-    newDeviceId[index] = value;
+    newDeviceId[index] = value.slice(0, 1); // Only take the first digit
     setDeviceId(newDeviceId);
 
     // Auto-focus to next input when this one is filled
-    if (value.length === 4 && index < 2) {
+    if (value && index < 11) {
       inputRefs[index + 1].current.focus();
     }
   };
@@ -27,6 +27,10 @@ export default function Setup() {
     // Move to previous input on backspace if current input is empty
     if (e.key === 'Backspace' && deviceId[index] === '' && index > 0) {
       inputRefs[index - 1].current.focus();
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      inputRefs[index - 1].current.focus();
+    } else if (e.key === 'ArrowRight' && index < 11) {
+      inputRefs[index + 1].current.focus();
     }
   };
 
@@ -84,7 +88,7 @@ export default function Setup() {
 
       {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4">
-        <div className="bg-white/20 backdrop-blur-md p-8 rounded-2xl shadow-xl max-w-md w-full border border-red-950/10">
+        <div className="bg-white/20 backdrop-blur-md p-8 rounded-2xl shadow-xl w-fit mx-auto border border-red-950/10">
           <div className="text-center mb-8">
             <div className="inline-flex items-center space-x-2 mb-4">
               <Music className="w-6 h-6 text-red-950" />
@@ -100,24 +104,35 @@ export default function Setup() {
               <label htmlFor="deviceId" className="block text-sm font-medium mb-2">
                 Device ID
               </label>
-              <div className="flex space-x-3 justify-center">
-                {[0, 1, 2].map((index) => (
-                  <div key={index} className="w-full">
-                    <input
-                      ref={inputRefs[index]}
-                      type="text"
-                      maxLength={4}
-                      value={deviceId[index]}
-                      onChange={(e) => handleInputChange(index, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(index, e)}
-                      placeholder="0000"
-                      className="w-full px-2 py-3 rounded-lg bg-white/50 border border-red-950/20 focus:border-red-950/40 focus:outline-none text-center font-mono text-lg"
-                      disabled={isLoading}
-                    />
-                  </div>
+              <div className="flex justify-center items-center gap-4 flex-wrap">
+                {[0, 4, 8].map((groupStart, i) => (
+                  <React.Fragment key={groupStart}>
+                    {i > 0 && <span className="text-red-950/30 text-xl">-</span>}
+                    <div className="flex gap-2">
+                      {Array(4).fill(0).map((_, j) => {
+                        const index = groupStart + j;
+                        return (
+                          <input
+                            key={index}
+                            ref={inputRefs[index]}
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={1}
+                            value={deviceId[index]}
+                            onChange={(e) => handleInputChange(index, e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(index, e)}
+                            placeholder="0"
+                            className="w-8 h-10 text-center font-mono text-base rounded-md bg-white/70 border border-red-950/20 focus:border-red-950/60 focus:ring-1 focus:ring-red-950/30 focus:outline-none shadow-sm"
+                            disabled={isLoading}
+                          />
+                        );
+                      })}
+                    </div>
+                  </React.Fragment>
                 ))}
               </div>
-              <p className="mt-1 text-xs text-center text-red-950/60">Enter your 12-digit device ID</p>
+              <p className="mt-3 text-xs text-center text-red-950/60">Enter your 12-digit device ID</p>
               {error && <p className="mt-2 text-red-600 text-sm text-center">{error}</p>}
             </div>
 
@@ -136,12 +151,6 @@ export default function Setup() {
               )}
             </button>
           </form>
-
-          <div className="mt-6 text-center text-sm text-red-950/60">
-            <p>
-              This will connect your device to your Spotify account for music display
-            </p>
-          </div>
         </div>
       </div>
 
