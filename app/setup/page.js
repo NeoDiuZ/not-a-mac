@@ -110,7 +110,7 @@ export default function Setup() {
                         <input
                           key={index}
                           ref={inputRefs[index]}
-                          type="text"
+                          type="text" //added mobile responsiveness
                           inputMode="numeric"
                           pattern="[0-9]*"
                           maxLength={1}
