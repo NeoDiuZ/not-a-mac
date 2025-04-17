@@ -101,12 +101,12 @@ export default function Setup() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <div className="grid grid-cols-4 gap-2 md:grid-cols-none md:flex md:justify-center md:items-center md:gap-6 px-2">
+              <div className="grid grid-cols-4 gap-2 md:flex md:justify-center md:items-center md:gap-6 px-2 max-w-[280px] mx-auto md:max-w-none">
                 {Array(12).fill(0).map((_, index) => (
                   <input
                     key={index}
                     ref={inputRefs[index]}
-                    type="text" //added mobile responsiveness
+                    type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
                     maxLength={1}
@@ -114,7 +114,7 @@ export default function Setup() {
                     onChange={(e) => handleInputChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     placeholder="0"
-                    className="w-12 h-12 md:w-8 md:h-10 text-center font-mono text-base rounded-md bg-white/70 border border-red-950/20 focus:border-red-950/60 focus:ring-1 focus:ring-red-950/30 focus:outline-none shadow-sm"
+                    className="w-full h-12 md:w-8 md:h-10 text-center font-mono text-base rounded-md bg-white/70 border border-red-950/20 focus:border-red-950/60 focus:ring-1 focus:ring-red-950/30 focus:outline-none shadow-sm"
                     disabled={isLoading}
                   />
                 ))}
