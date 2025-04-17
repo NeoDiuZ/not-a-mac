@@ -1,21 +1,47 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Music, ArrowRight } from 'lucide-react';
 
 export default function Setup() {
-  const [macAddress, setMacAddress] = useState('');
+  const [deviceId, setDeviceId] = useState(['', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const inputRefs = [useRef(null), useRef(null), useRef(null)];
+
+  const handleInputChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return;
+    
+    const newDeviceId = [...deviceId];
+    newDeviceId[index] = value;
+    setDeviceId(newDeviceId);
+
+    // Auto-focus to next input when this one is filled
+    if (value.length === 4 && index < 2) {
+      inputRefs[index + 1].current.focus();
+    }
+  };
+
+  const handleKeyDown = (index, e) => {
+    // Move to previous input on backspace if current input is empty
+    if (e.key === 'Backspace' && deviceId[index] === '' && index > 0) {
+      inputRefs[index - 1].current.focus();
+    }
+  };
+
+  const getFullDeviceId = () => {
+    return deviceId.join('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    if (!macAddress.trim()) {
-      setError('Device ID is required');
+    const fullDeviceId = getFullDeviceId();
+    if (fullDeviceId.length !== 12) {
+      setError('Device ID must be 12 digits');
       setIsLoading(false);
       return;
     }
@@ -26,7 +52,7 @@ export default function Setup() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ mac: macAddress }),
+        body: JSON.stringify({ mac: fullDeviceId }),
       });
 
       if (response.redirected) {
@@ -71,19 +97,28 @@ export default function Setup() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="macAddress" className="block text-sm font-medium mb-2">
+              <label htmlFor="deviceId" className="block text-sm font-medium mb-2">
                 Device ID
               </label>
-              <input
-                type="text"
-                id="macAddress"
-                value={macAddress}
-                onChange={(e) => setMacAddress(e.target.value)}
-                placeholder="Enter your device ID"
-                className="w-full px-4 py-3 rounded-lg bg-white/50 border border-red-950/20 focus:border-red-950/40 focus:outline-none"
-                disabled={isLoading}
-              />
-              {error && <p className="mt-2 text-red-600 text-sm">{error}</p>}
+              <div className="flex space-x-3 justify-center">
+                {[0, 1, 2].map((index) => (
+                  <div key={index} className="w-full">
+                    <input
+                      ref={inputRefs[index]}
+                      type="text"
+                      maxLength={4}
+                      value={deviceId[index]}
+                      onChange={(e) => handleInputChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      placeholder="0000"
+                      className="w-full px-2 py-3 rounded-lg bg-white/50 border border-red-950/20 focus:border-red-950/40 focus:outline-none text-center font-mono text-lg"
+                      disabled={isLoading}
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="mt-1 text-xs text-center text-red-950/60">Enter your 12-digit device ID</p>
+              {error && <p className="mt-2 text-red-600 text-sm text-center">{error}</p>}
             </div>
 
             <button
