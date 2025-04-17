@@ -101,38 +101,31 @@ export default function Setup() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="deviceId" className="block text-sm font-medium mb-2">
-                Device ID
-              </label>
-              <div className="flex justify-center items-center gap-4 flex-wrap">
-                {[0, 4, 8].map((groupStart, i) => (
-                  <React.Fragment key={groupStart}>
-                    {i > 0 && <span className="text-red-950/30 text-xl">-</span>}
-                    <div className="flex gap-2">
-                      {Array(4).fill(0).map((_, j) => {
-                        const index = groupStart + j;
-                        return (
-                          <input
-                            key={index}
-                            ref={inputRefs[index]}
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            maxLength={1}
-                            value={deviceId[index]}
-                            onChange={(e) => handleInputChange(index, e.target.value)}
-                            onKeyDown={(e) => handleKeyDown(index, e)}
-                            placeholder="0"
-                            className="w-8 h-10 text-center font-mono text-base rounded-md bg-white/70 border border-red-950/20 focus:border-red-950/60 focus:ring-1 focus:ring-red-950/30 focus:outline-none shadow-sm"
-                            disabled={isLoading}
-                          />
-                        );
-                      })}
-                    </div>
-                  </React.Fragment>
+              <div className="flex justify-center items-center gap-6">
+                {[0, 4, 8].map((groupStart) => (
+                  <div key={groupStart} className="flex gap-2">
+                    {Array(4).fill(0).map((_, j) => {
+                      const index = groupStart + j;
+                      return (
+                        <input
+                          key={index}
+                          ref={inputRefs[index]}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={1}
+                          value={deviceId[index]}
+                          onChange={(e) => handleInputChange(index, e.target.value)}
+                          onKeyDown={(e) => handleKeyDown(index, e)}
+                          placeholder="0"
+                          className="w-8 h-10 text-center font-mono text-base rounded-md bg-white/70 border border-red-950/20 focus:border-red-950/60 focus:ring-1 focus:ring-red-950/30 focus:outline-none shadow-sm"
+                          disabled={isLoading}
+                        />
+                      );
+                    })}
+                  </div>
                 ))}
               </div>
-              <p className="mt-3 text-xs text-center text-red-950/60">Enter your 12-digit device ID</p>
               {error && <p className="mt-2 text-red-600 text-sm text-center">{error}</p>}
             </div>
 
