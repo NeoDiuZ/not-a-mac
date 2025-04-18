@@ -115,7 +115,7 @@ const LandingPage = () => {
                 <CountdownBox value={timeLeft.minutes} label="Minutes" />
                 <CountdownBox value={timeLeft.seconds} label="Seconds" />
               </div>
-              <a href="/setup" className="inline-block bg-white/10 backdrop-blur-sm text-red-950 px-8 py-3 rounded-lg font-medium 
+              <a href="https://spotify-player-esp32.onrender.com/form" className="inline-block bg-white/10 backdrop-blur-sm text-red-950 px-8 py-3 rounded-lg font-medium 
                                hover:bg-white/20 transition-all duration-300 border border-red-950/20
                                hover:border-red-950/40 tracking-wide transform hover:scale-105">
                 Setup Your Device
