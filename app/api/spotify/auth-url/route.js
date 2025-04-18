@@ -12,7 +12,7 @@ export async function GET(request) {
 
   const scope = 'user-read-currently-playing user-read-playback-state user-read-private';
   
-  // Use device ID as state to identify the device during callback
+  // Use device ID directly as state
   const state = deviceId;
   
   const params = querystring.stringify({

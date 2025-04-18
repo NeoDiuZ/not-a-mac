@@ -59,15 +59,27 @@ export default function Setup() {
         body: JSON.stringify({ mac: fullDeviceId }),
       });
 
-      if (response.redirected) {
-        // Follow the redirect
-        window.location.href = response.url;
-      } else {
-        const data = await response.json();
-        if (data.error) {
-          setError(data.error);
-        }
+      const data = await response.json();
+      
+      if (data.error) {
+        setError(data.error);
+        return;
       }
+      
+      if (data.redirectTo) {
+        // Navigate to success page
+        router.push(data.redirectTo);
+        return;
+      }
+      
+      if (data.authUrl) {
+        // Redirect to Spotify auth page
+        window.location.href = data.authUrl;
+        return;
+      }
+      
+      // Fallback error if we got here
+      setError('Unexpected response from server');
     } catch (err) {
       console.error('Error registering device:', err);
       setError('Failed to register device. Please try again.');

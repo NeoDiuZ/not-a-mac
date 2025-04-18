@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import dataModel from '../../../models/dataModel';
+import querystring from 'querystring';
 
 export async function POST(request) {
   try {
@@ -12,12 +13,12 @@ export async function POST(request) {
 
     // Check if user (device) already has a refresh token
     const result = await dataModel.checkRefreshToken({ id: mac });
-    const hasToken = result.rows.length > 0 && result.rows[0].refresh_token !== null;
+    const hasToken = result.rows.length > 0 && result.rows[0].refresh_token !== null && result.rows[0].refresh_token !== '';
 
     if (hasToken) {
       console.log('User already exists with token.');
-      // In Next.js route handlers, you can redirect like this:
-      return NextResponse.redirect(new URL('/success.html', request.url));
+      // Return success response instead of redirecting
+      return NextResponse.json({ success: true, redirectTo: '/success' });
     }
 
     // If no token, register the device
@@ -28,12 +29,23 @@ export async function POST(request) {
       console.log('New user registered:', mac);
     }
 
-    // Redirect to Spotify login
-    const url = new URL('/api/spotify/auth-url', request.url); 
-    url.searchParams.set('id', mac);
-    // or if you have a specific route like /spotify/login
-    // url.pathname = '/spotify/login';
-    return NextResponse.redirect(url);
+    // Generate Spotify auth URL directly
+    const scope = 'user-read-currently-playing user-read-playback-state user-read-private';
+    const state = mac;
+    
+    const params = querystring.stringify({
+      response_type: 'code',
+      client_id: process.env.SPOTIFY_CLIENT_ID,
+      scope: scope,
+      redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+      state: state
+    });
+    
+    const spotifyAuthUrl = `https://accounts.spotify.com/authorize?${params}`;
+    console.log('Generated Spotify auth URL:', spotifyAuthUrl);
+    
+    // Return the URL instead of redirecting
+    return NextResponse.json({ success: true, authUrl: spotifyAuthUrl });
   } catch (err) {
     console.error('Error in register route:', err);
     return NextResponse.json({ error: 'Server error.' }, { status: 500 });
