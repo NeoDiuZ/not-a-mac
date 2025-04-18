@@ -8,7 +8,9 @@ export default function Setup() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const inputRefs = Array(12).fill(0).map(() => useRef(null));
+  
+  // Create refs outside the callback to fix the React hook error
+  const inputRefs = useRef(Array(12).fill(null));
 
   const handleInputChange = (index, value) => {
     if (!/^\d*$/.test(value)) return;
@@ -19,18 +21,18 @@ export default function Setup() {
 
     // Auto-focus to next input when this one is filled
     if (value && index < 11) {
-      inputRefs[index + 1].current.focus();
+      inputRefs.current[index + 1].focus();
     }
   };
 
   const handleKeyDown = (index, e) => {
     // Move to previous input on backspace if current input is empty
     if (e.key === 'Backspace' && deviceId[index] === '' && index > 0) {
-      inputRefs[index - 1].current.focus();
+      inputRefs.current[index - 1].focus();
     } else if (e.key === 'ArrowLeft' && index > 0) {
-      inputRefs[index - 1].current.focus();
+      inputRefs.current[index - 1].focus();
     } else if (e.key === 'ArrowRight' && index < 11) {
-      inputRefs[index + 1].current.focus();
+      inputRefs.current[index + 1].focus();
     }
   };
 
@@ -117,7 +119,7 @@ export default function Setup() {
                 {Array(12).fill(0).map((_, index) => (
                   <input
                     key={index}
-                    ref={inputRefs[index]}
+                    ref={(el) => (inputRefs.current[index] = el)}
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"

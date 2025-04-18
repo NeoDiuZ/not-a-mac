@@ -4,13 +4,51 @@ import { Pool } from 'pg';
 // Read environment variables
 const DATABASE_URL = process.env.DATABASE_URL;
 
-// Create a PostgreSQL pool
-const pool = new Pool({
+// Create a PostgreSQL pool with proper SSL handling for both dev and production
+let poolConfig = {
   connectionString: DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false // Required for Supabase connections
-  }
+};
+
+// In production environments, SSL is required
+if (process.env.NODE_ENV === 'production') {
+  poolConfig.ssl = { rejectUnauthorized: false };
+} else {
+  // For local development
+  poolConfig.ssl = { rejectUnauthorized: false };
+}
+
+console.log('Creating database pool with config:', {
+  hasConnectionString: !!poolConfig.connectionString,
+  sslConfig: poolConfig.ssl,
+  environment: process.env.NODE_ENV
 });
+
+const pool = new Pool(poolConfig);
+
+// Test the connection on initialization
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+});
+
+// Test connection function
+async function testConnection() {
+  try {
+    const client = await pool.connect();
+    console.log('Database connection successful');
+    client.release();
+    return true;
+  } catch (err) {
+    console.error('Database connection failed:', {
+      message: err.message,
+      code: err.code,
+      detail: err.detail
+    });
+    return false;
+  }
+}
+
+// Run the test once
+testConnection();
 
 const dataModel = {
   // Check if a user has a refresh token
@@ -21,10 +59,17 @@ const dataModel = {
     };
     
     try {
+      console.log('Attempting database connection with query:', query.text);
       const result = await pool.query(query);
+      console.log('Database query successful, received rows:', result.rows.length);
       return { success: true, rows: result.rows.map(row => ({ refresh_token: row.refresh_token })) };
     } catch (error) {
-      console.error('Error checking refresh token:', error);
+      console.error('Error checking refresh token:', {
+        message: error.message,
+        stack: error.stack,
+        code: error.code,
+        detail: error.detail
+      });
       return { success: false, error };
     }
   },
