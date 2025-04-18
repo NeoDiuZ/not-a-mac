@@ -13,10 +13,12 @@ export default function Setup() {
   const inputRefs = useRef(Array(12).fill(null));
 
   const handleInputChange = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
+    // Allow digits and letters
+    if (!/^[0-9a-zA-Z]*$/.test(value)) return;
     
     const newDeviceId = [...deviceId];
-    newDeviceId[index] = value.slice(0, 1); // Only take the first digit
+    // Convert to uppercase if it's a letter
+    newDeviceId[index] = value.slice(0, 1).toUpperCase(); 
     setDeviceId(newDeviceId);
 
     // Auto-focus to next input when this one is filled
@@ -47,7 +49,7 @@ export default function Setup() {
 
     const fullDeviceId = getFullDeviceId();
     if (fullDeviceId.length !== 12) {
-      setError('Device ID must be 12 digits');
+      setError('Device ID must be 12 characters');
       setIsLoading(false);
       return;
     }
@@ -121,8 +123,7 @@ export default function Setup() {
                     key={index}
                     ref={(el) => (inputRefs.current[index] = el)}
                     type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
+                    inputMode="text"
                     maxLength={1}
                     value={deviceId[index]}
                     onChange={(e) => handleInputChange(index, e.target.value)}

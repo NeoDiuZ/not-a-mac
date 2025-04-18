@@ -11,6 +11,11 @@ export async function GET(request) {
     }
 
     const result = await dataModel.checkRefreshToken({ id: mac });
+    if (!result.success) {
+      console.error('Database error when retrieving token:', result.error);
+      return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    }
+    
     if (result.rows.length === 0 || !result.rows[0].refresh_token) {
       return NextResponse.json({ error: 'Refresh token not found' }, { status: 404 });
     }
