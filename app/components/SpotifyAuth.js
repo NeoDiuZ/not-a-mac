@@ -47,58 +47,63 @@ export default function SpotifyAuth() {
   };
 
   if (loading) {
-    return <div className="text-center">Loading...</div>;
+    return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin"></div></div>;
   }
 
   return (
-    <div className="py-12 px-4 bg-black/5 backdrop-blur-md">
-      <div className="max-w-4xl mx-auto text-center">
-        <div className="inline-flex items-center space-x-2 mb-8">
-          <Music className="w-6 h-6 text-red-950" />
-          <h2 className="text-3xl font-bold text-red-950">Connect with Spotify</h2>
+    <section className="relative py-24 px-4 bg-black text-white">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-16">
+          <p className="uppercase tracking-widest text-xs font-medium text-white/70 mb-2">Music Integration</p>
+          <h2 className="text-3xl md:text-4xl font-light mb-4">Connect Your Music</h2>
+          <p className="text-white/70 max-w-xl mx-auto">
+            Not-A-Mac seamlessly integrates with your Spotify account for a cohesive music experience
+          </p>
         </div>
         
         {isAuthenticated ? (
-          <div>
-            <p className="text-xl text-red-950/80 mb-8">Your Spotify account is connected!</p>
+          <div className="max-w-md mx-auto">
+            <div className="mb-8 text-center">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/10 mb-4">
+                <Music className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-white/80">Your Spotify account is connected</p>
+            </div>
             <CurrentlyPlaying />
           </div>
         ) : (
-          <div className="flex flex-col items-center space-y-4">
-            <p className="text-xl text-red-950/80 mb-8">
-              Scan the QR code to connect your Spotify account
-            </p>
-            {authUrl && (
-              <div 
-                className="bg-white p-4 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+          <div className="max-w-md mx-auto">
+            <div className="flex flex-col items-center">
+              {authUrl && (
+                <div
+                  onClick={handleLogin}
+                  className="bg-white p-6 rounded-md cursor-pointer mb-8 transition-transform duration-300 hover:scale-105"
+                >
+                  <QRCodeSVG
+                    value={authUrl}
+                    size={240}
+                    level="H"
+                    includeMargin={true}
+                    className="rounded-sm"
+                  />
+                </div>
+              )}
+              
+              <button
                 onClick={handleLogin}
+                className="flex items-center space-x-2 px-6 py-3 border border-white/20 hover:bg-white hover:text-black transition-all duration-300"
               >
-                <QRCodeSVG 
-                  value={authUrl}
-                  size={256}
-                  level="H"
-                  includeMargin={true}
-                />
-              </div>
-            )}
-            <p className="text-sm text-red-950/60">
-              Or click the button below
-            </p>
-            <button
-              onClick={handleLogin}
-              className="bg-[#1DB954] text-white px-8 py-3 rounded-lg font-medium 
-                       hover:bg-[#1ed760] transition-all duration-300
-                       transform hover:scale-105 flex items-center justify-center mx-auto space-x-2"
-            >
-              <Music className="w-5 h-5" />
-              <span>Connect Spotify</span>
-            </button>
-            <p className="mt-8 text-sm text-red-950/60">
-              For device setup, <a href="/setup" className="text-red-950 underline hover:text-red-800">click here</a>
-            </p>
+                <Music className="w-5 h-5" />
+                <span>Connect with Spotify</span>
+              </button>
+              
+              <p className="mt-10 text-xs text-white/50 uppercase tracking-widest">
+                For device setup, <a href="/setup" className="underline hover:text-white">visit the setup page</a>
+              </p>
+            </div>
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 } 

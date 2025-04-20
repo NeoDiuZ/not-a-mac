@@ -1,56 +1,34 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
-import { Clock, ShoppingBag, Sparkles, Recycle, Bot, Lock, Music, Heart, Globe, Zap, Star, Award } from 'lucide-react';
-import { SpotifyProvider } from './components/SpotifyProvider';
-import SpotifyAuth from './components/SpotifyAuth';
+import { Clock, ShoppingBag, Sparkles, Recycle, Bot, Lock, Music, Heart, Globe, Zap, Star, Award, ArrowDown, Plus, X } from 'lucide-react';
 
 const AnimatedBackground = () => {
   return (
-    <>
-      {/* Base cream background */}
-      <div className="absolute inset-0 bg-[#FFFDD0]"></div>
-      {/* Floating red smudge effect */}
-      <div className="absolute inset-0">
-        <div 
-          className="absolute w-[40vw] h-[40vw] rounded-full bg-[#FF0000]/70 blur-[80px]
-                     motion-safe:animate-[float1_20s_ease-in-out_infinite]"
-          style={{ left: '10%', top: '10%' }}
-        ></div>
-        <div 
-          className="absolute w-[45vw] h-[45vw] rounded-full bg-[#FF0000]/60 blur-[100px]
-                     motion-safe:animate-[float2_25s_ease-in-out_infinite]"
-          style={{ right: '15%', top: '30%' }}
-        ></div>
-        <div 
-          className="absolute w-[35vw] h-[35vw] rounded-full bg-[#FF0000]/65 blur-[60px]
-                     motion-safe:animate-[float3_15s_ease-in-out_infinite]"
-          style={{ left: '30%', bottom: '20%' }}
-        ></div>
+    <div className="fixed inset-0 bg-white z-0 overflow-hidden">
+      {/* Subtle dot pattern */}
+      <div className="absolute inset-0 opacity-[0.03]" 
+           style={{ 
+             backgroundImage: 'radial-gradient(black 1px, transparent 0)', 
+             backgroundSize: '40px 40px' 
+           }}>
       </div>
-    </>
+      
+      {/* Minimal gradients */}
+      <div className="absolute -top-[10%] -left-[10%] w-[70%] h-[50%] rounded-full bg-black/[0.02] blur-[80px]"></div>
+      <div className="absolute top-[60%] -right-[5%] w-[50%] h-[60%] rounded-full bg-black/[0.02] blur-[100px]"></div>
+    </div>
   );
 };
 
 const LandingPage = () => {
-  const [designerName, setDesignerName] = useState('');
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeFeature, setActiveFeature] = useState(null);
+  const heroRef = useRef(null);
   
-  const designerNames = [
-    '???'
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const randomName = designerNames[Math.floor(Math.random() * designerNames.length)];
-      setDesignerName(randomName);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
+  // Countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
-      const futureDate = new Date('2025-02-01').getTime();
+      const futureDate = new Date('2025-05-01').getTime();
       const now = new Date().getTime();
       const distance = futureDate - now;
 
@@ -65,192 +43,264 @@ const LandingPage = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const CountdownBox = ({ value, label }) => (
-    <div className="bg-black/30 backdrop-blur-sm p-4 rounded-lg transform hover:scale-105 transition-transform duration-300">
-      <p className="text-3xl font-bold">{value}</p>
-      <p className="text-sm">{label}</p>
-    </div>
-  );
+  const scrollToNextSection = () => {
+    if (heroRef.current) {
+      const nextSection = heroRef.current.nextElementSibling;
+      if (nextSection) {
+        nextSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
-  const Stats = () => (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto mt-16">
-      <StatBox number="100%" text="Eco-Friendly" />
-      <StatBox number="1/1" text="Uniqueness" />
-      <StatBox number="0" text="Carbon Footprint" />
-      <StatBox number="∞" text="Style Points" />
-    </div>
-  );
-
-  const StatBox = ({ number, text }) => (
-    <div className="text-center">
-      <p className="text-4xl font-bold text-red-950">{number}</p>
-      <p className="text-sm text-red-950/70">{text}</p>
-    </div>
-  );
+  // Feature details
+  const featureDetails = {
+    'eco-friendly': {
+      title: 'Eco-Friendly',
+      icon: <Recycle className="w-6 h-6" />,
+      description: 'Crafted from ethically self-sourced recycled materials',
+      extendedDescription: 'Our manufacturing process uses 100% recycled materials, reducing waste and environmental impact. Each Not-A-Mac diverts approximately 250g of plastic from landfills, contributing to a cleaner planet.',
+    },
+    'smart-control': {
+      title: 'Smart Control',
+      icon: <Bot className="w-6 h-6" />,
+      description: 'Seamless interaction with your music ecosystem',
+      extendedDescription: 'Advanced sensors and controls allow for intuitive gesture-based interaction. Control your music with simple movements - wave to skip tracks, tap to pause, and more.',
+    },
+    'unique-identity': {
+      title: 'Unique Identity',
+      icon: <Sparkles className="w-6 h-6" />,
+      description: 'Each piece individually numbered with its own personality',
+      extendedDescription: 'No two Not-A-Mac devices are exactly alike. Each unit is individually numbered and has subtle variations in its finish, making your device truly one-of-a-kind.',
+    },
+    'music-display': {
+      title: 'Music Display',
+      icon: <Music className="w-6 h-6" />,
+      description: 'Elegant visualization of your current playlist',
+      extendedDescription: 'The minimalist display shows currently playing tracks, album art, and playback controls in a visually stunning interface that complements any space.',
+    },
+    'zero-footprint': {
+      title: 'Zero Footprint',
+      icon: <Globe className="w-6 h-6" />,
+      description: 'Sustainable manufacturing with no environmental impact',
+      extendedDescription: 'Our carbon-neutral production facilities run on 100% renewable energy. We offset all shipping emissions and use biodegradable packaging materials.',
+    },
+    'limited-edition': {
+      title: 'Limited Edition',
+      icon: <Award className="w-6 h-6" />,
+      description: 'Exclusive collector\'s item for design enthusiasts',
+      extendedDescription: 'With only 500 units produced in our first collection, Not-A-Mac is a true collector\'s item. Each device comes with a certificate of authenticity and unique serial number.',
+    }
+  };
 
   return (
-    <SpotifyProvider>
-      <div className="min-h-screen text-white font-light relative antialiased">
-        <div className="fixed inset-0 z-0">
-          <AnimatedBackground />
-        </div>
+    <div className="min-h-screen font-light antialiased text-black">
+      <AnimatedBackground />
 
-        {/* Content wrapper */}
-        <div className="relative z-10">
-          {/* Hero Section */}
-          <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-            <div className="absolute inset-0 bg-[#FFFDD0]/10 backdrop-blur-sm"></div>
-            <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-              <div className="flex items-center justify-center space-x-2 mb-4">
-              </div>
-              <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-black to-red-950 leading-tight">
-                Drop #39<br/>Not-A-Mac
+      {/* Fixed Navigation */}
+      <nav className="fixed top-0 w-full z-50 px-4 py-4 bg-white/70 backdrop-blur-sm transition-all duration-300">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <div className="text-sm font-medium">Not-A-Mac</div>
+          <div className="flex space-x-6">
+            <a href="#features" className="text-sm text-black/60 hover:text-black transition-colors">Features</a>
+            <a href="#product" className="text-sm text-black/60 hover:text-black transition-colors">Product</a>
+            <a href="#manifesto" className="text-sm text-black/60 hover:text-black transition-colors">Manifesto</a>
+          </div>
+        </div>
+      </nav>
+
+      <div className="relative z-10 w-full overflow-x-hidden">
+        {/* Hero Section */}
+        <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-center px-4 py-20">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="space-y-2 mb-6">
+              <p className="uppercase tracking-widest text-xs font-medium">Drop #39</p>
+              <h1 className="text-7xl md:text-9xl font-bold tracking-tight">
+                Not-A-Mac
               </h1>
-              <p className="text-2xl mb-8 text-red-950 font-normal italic tracking-wide">
-                An aesthetic desk accessory that allows users to display and interact with their music
-              </p>
-              <div className="flex justify-center space-x-4 mb-12">
-                <CountdownBox value={timeLeft.days} label="Days" />
-                <CountdownBox value={timeLeft.hours} label="Hours" />
-                <CountdownBox value={timeLeft.minutes} label="Minutes" />
-                <CountdownBox value={timeLeft.seconds} label="Seconds" />
-              </div>
-              <a href="https://spotify-player-esp32.onrender.com/form" className="inline-block bg-white/10 backdrop-blur-sm text-red-950 px-8 py-3 rounded-lg font-medium 
-                               hover:bg-white/20 transition-all duration-300 border border-red-950/20
-                               hover:border-red-950/40 tracking-wide transform hover:scale-105">
+            </div>
+            
+            <p className="text-lg md:text-xl text-black/70 max-w-lg mx-auto mb-12 font-light">
+              A minimalist desk accessory that elegantly displays and controls your music
+            </p>
+            
+            {/* Countdown */}
+            <div className="inline-flex space-x-6 mb-16">
+              <CountdownItem value={timeLeft.days} label="Days" />
+              <CountdownSeparator />
+              <CountdownItem value={timeLeft.hours} label="Hours" />
+              <CountdownSeparator />
+              <CountdownItem value={timeLeft.minutes} label="Mins" />
+              <CountdownSeparator />
+              <CountdownItem value={timeLeft.seconds} label="Secs" />
+            </div>
+            
+            <div>
+              <a href="https://spotify-player-esp32.onrender.com/form" 
+                className="inline-block px-8 py-3 border border-black transition-all duration-300 
+                          hover:bg-black hover:text-white">
                 Setup Your Device
               </a>
-              <Stats />
             </div>
           </div>
+          
+          <button 
+            onClick={scrollToNextSection}
+            className="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-black/50 hover:text-black
+                     transition-all duration-300 animation-pulse"
+          >
+            <ArrowDown className="w-8 h-8" />
+          </button>
+        </section>
 
-          {/* Replace the old SpotifyAuthSection with the new component */}
-          <SpotifyAuth />
-
-          {/* Vision Section */}
-          <div className="py-24 px-4 bg-black/5 backdrop-blur-md">
-            <div className="max-w-6xl mx-auto text-center">
-              <div className="inline-flex items-center space-x-2 mb-8">
-                <h2 className="text-3xl font-bold text-red-950">Our Vision</h2>
-              </div>
-              <p className="text-2xl text-red-950/90 max-w-3xl mx-auto leading-relaxed">
-                We believe in creating products that are not just aesthetically pleasing, but also 
-                environmentally conscious. Each Not-A-Mac tells a story of innovation, sustainability, 
-                and uncompromising style.
-              </p>
+        {/* Features Section */}
+        <section id="features" className="relative py-24 px-4 bg-black text-white">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-20">
+              <p className="uppercase tracking-widest text-xs font-medium text-white/70 mb-2">Features</p>
+              <h2 className="text-3xl md:text-4xl font-light">Thoughtfully Designed</h2>
             </div>
-          </div>
-
-          {/* Features Grid */}
-          <div className="py-24 px-4 bg-black/5 backdrop-blur-md">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <div className="inline-flex items-center space-x-2 mb-8">
-                  <Zap className="w-6 h-6 text-red-950" />
-                  <h2 className="text-3xl font-bold text-red-950">Features</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-16">
+              {Object.keys(featureDetails).map((key) => (
+                <div key={key}>
+                  <FeatureItem 
+                    id={key}
+                    icon={featureDetails[key].icon}
+                    title={featureDetails[key].title}
+                    description={featureDetails[key].description}
+                    onClick={() => setActiveFeature(key)}
+                  />
                 </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                <FeatureCard 
-                  Icon={Recycle}
-                  title="Eco-Friendly"
-                  description="Crafted from ethically self-sourced plastic waste"
-                />
-                <FeatureCard 
-                  Icon={Bot}
-                  title="Robotic Precision"
-                  description="State-of-the-art manufacturing process"
-                />
-                <FeatureCard 
-                  Icon={Sparkles}
-                  title="Unique Identity"
-                  description="Each piece numbered with its own personality"
-                />
-                <FeatureCard 
-                  Icon={Music}
-                  title="Music Integration"
-                  description="Seamlessly display and control your music"
-                />
-                <FeatureCard 
-                  Icon={Globe}
-                  title="Sustainable Impact"
-                  description="Zero carbon footprint manufacturing"
-                />
-                <FeatureCard 
-                  Icon={Award}
-                  title="Limited Edition"
-                  description="Exclusive numbered pieces"
-                />
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Detailed Description Section */}
-          <div className="py-24 px-4 bg-black/10 backdrop-blur-md">
-            <div className="max-w-4xl mx-auto">
-              <div className="space-y-8">
-                <div className="text-center mt-16">
-                  <p className="text-2xl font-medium text-red-950 italic">
-                    A fusion of cutting-edge eco-tech and robotic artistry, designed for those who demand sustainability 
-                    with style, swag, and a sprinkle of Za. Limited edition, endlessly iconic, and built for legends like you.
-                  </p>
-                  <div className="mt-8 relative">
-                    <p className="text-4xl font-bold text-red-950 relative z-10">
-                      Be what you could be.
-                    </p>
-                    <div className="absolute inset-0 bg-red-950/5 blur-lg transform -rotate-1"></div>
+          {/* Feature Modal */}
+          {activeFeature && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-white text-black max-w-xl w-full p-8 relative">
+                <button 
+                  onClick={() => setActiveFeature(null)} 
+                  className="absolute top-4 right-4 text-black/50 hover:text-black transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                <div className="mb-6 flex items-center">
+                  <div className="p-2 border border-black/20 rounded-full mr-4">
+                    {featureDetails[activeFeature].icon}
                   </div>
+                  <h3 className="text-2xl font-medium">{featureDetails[activeFeature].title}</h3>
+                </div>
+                <p className="mb-4 text-black/70">{featureDetails[activeFeature].description}</p>
+                <p className="text-black/80 leading-relaxed">{featureDetails[activeFeature].extendedDescription}</p>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Product Preview */}
+        <section id="product" className="relative py-24 px-4 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+              <div>
+                <p className="uppercase tracking-widest text-xs font-medium text-black/70 mb-2">Coming Soon</p>
+                <h2 className="text-3xl md:text-5xl font-light mb-8">Redefining desktop aesthetics</h2>
+                <p className="text-black/70 text-lg mb-10 leading-relaxed">
+                  A fusion of cutting-edge eco-tech and minimalist design, Not-A-Mac elevates your space while providing 
+                  seamless music control. Limited edition, thoughtfully crafted.
+                </p>
+                <div className="space-y-6">
+                  <StatItem label="Production" value="100% Eco-Friendly" />
+                  <StatItem label="Uniqueness" value="1/1 Numbered Edition" />
+                  <StatItem label="Availability" value="February 2025" />
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Product Preview */}
-          <div className="py-24 px-4 bg-black/5 backdrop-blur-sm">
-            <div className="max-w-4xl mx-auto text-center">
-              <div className="inline-flex items-center space-x-2 mb-8">
-                <ShoppingBag className="w-6 h-6 text-red-950" />
-                <h2 className="text-3xl font-bold text-red-950">Coming Soon</h2>
-              </div>
-              <div className="aspect-video bg-black/10 rounded-lg mb-8 flex items-center justify-center backdrop-blur-sm 
-                            border border-red-950/10 hover:border-red-950/20 transition-all duration-300
-                            transform hover:scale-105">
-                <Lock className="w-16 h-16 text-red-950/40" />
+              <div className="aspect-square bg-black/5 rounded-md flex items-center justify-center">
+                <Lock className="w-20 h-20 text-black/20" />
               </div>
             </div>
           </div>
+        </section>
 
-          {/* Footer */}
-          <footer className="py-8 px-4 border-t border-red-900/10 bg-black/5 backdrop-blur-sm">
-            <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
-              <p className="text-red-950/60 mb-4 md:mb-0">© 2025 Not-A-Mac. All rights reserved.</p>
-              <div className="flex space-x-6">
-                <FooterLink href="#" text="Privacy" />
-                <FooterLink href="#" text="Terms" />
-                <FooterLink href="#" text="Contact" />
+        {/* Manifesto */}
+        <section id="manifesto" className="relative py-24 px-4 bg-black text-white">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-2xl md:text-3xl font-light leading-relaxed">
+              &ldquo;Be what you could be.&rdquo;
+            </p>
+            <p className="mt-8 text-sm text-white/60 uppercase tracking-widest">
+              Not-A-Mac Manifesto
+            </p>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer id="footer" className="relative py-12 px-4 border-t border-black/10 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+              <div>
+                <p className="text-sm font-medium mb-3">Not-A-Mac</p>
+                <p className="text-sm text-black/60">
+                  An aesthetic desk accessory for music lovers and design enthusiasts.
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium mb-3">Links</p>
+                <div className="space-y-2">
+                  <p><a href="#" className="text-sm text-black/60 hover:text-black">Setup Device</a></p>
+                  <p><a href="#" className="text-sm text-black/60 hover:text-black">Support</a></p>
+                  <p><a href="#" className="text-sm text-black/60 hover:text-black">Privacy Policy</a></p>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium mb-3">Connect</p>
+                <p className="text-sm text-black/60">
+                  For inquiries, please email us at hello@notamac.com
+                </p>
               </div>
             </div>
-          </footer>
-        </div>
+            <div className="pt-10 border-t border-black/10 text-center">
+              <p className="text-xs text-black/50">© 2025 Not-A-Mac. All rights reserved.</p>
+            </div>
+          </div>
+        </footer>
       </div>
-    </SpotifyProvider>
+    </div>
   );
 };
 
-const FeatureCard = ({ Icon, title, description }) => (
-  <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-lg border border-red-950/10 
-                  hover:border-red-950/20 transition-all duration-300 transform hover:scale-105">
-    <Icon className="w-12 h-12 mx-auto mb-4 text-red-950" />
-    <h3 className="text-2xl font-bold mb-2 text-red-950">{title}</h3>
-    <p className="text-red-950/80 font-normal">{description}</p>
+const CountdownItem = ({ value, label }) => (
+  <div className="text-center">
+    <p className="text-4xl font-light tabular-nums">{value.toString().padStart(2, '0')}</p>
+    <p className="text-xs uppercase tracking-widest mt-1 text-black/60">{label}</p>
   </div>
 );
 
-const FooterLink = ({ href, text }) => (
-  <a href={href} 
-     className="text-red-950/60 hover:text-red-950 transition-colors duration-300">
-    {text}
-  </a>
+const CountdownSeparator = () => (
+  <div className="text-4xl font-light text-black/30 flex items-center">:</div>
+);
+
+const FeatureItem = ({ id, icon, title, description, onClick }) => (
+  <div 
+    className="flex flex-col items-start group cursor-pointer transform transition-all duration-300 hover:-translate-y-1"
+    onClick={onClick}
+  >
+    <div className="mb-4 p-2 border border-white/20 rounded-full group-hover:border-white group-hover:bg-white/10 transition-all duration-300">
+      {icon}
+    </div>
+    <h3 className="text-xl font-medium mb-2 flex items-center">
+      {title}
+      <Plus className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    </h3>
+    <p className="text-white/70 font-light leading-relaxed">{description}</p>
+  </div>
+);
+
+const StatItem = ({ label, value }) => (
+  <div className="flex justify-between items-center">
+    <p className="text-sm text-black/60">{label}</p>
+    <p className="text-sm font-medium">{value}</p>
+  </div>
 );
 
 export default LandingPage;
