@@ -2,20 +2,261 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Clock, ShoppingBag, Sparkles, Recycle, Bot, Lock, Music, Heart, Globe, Zap, Star, Award, ArrowDown, Plus, X } from 'lucide-react';
 
+// Parallax and animation components
+const ParallaxSection = ({ children, speed = 0.1, className = '' }) => {
+  const [offset, setOffset] = useState(0);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!sectionRef.current) return;
+      const scrollY = window.scrollY;
+      const sectionTop = sectionRef.current.offsetTop;
+      const relativeScroll = scrollY - sectionTop;
+      setOffset(relativeScroll * speed);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [speed]);
+  
+  return (
+    <div ref={sectionRef} className={`relative overflow-hidden ${className}`}>
+      <div style={{ transform: `translateY(${offset}px)` }}>
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const FadeIn = ({ children, className = '', delay = 0 }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.disconnect();
+      }
+    };
+  }, []);
+
+  return (
+    <div 
+      ref={ref}
+      className={`transition-all duration-1000 ${
+        isVisible 
+          ? 'opacity-100 translate-y-0 filter-none'
+          : 'opacity-0 translate-y-4 blur-[2px]'
+      } ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+};
+
+const FlickerIn = ({ children, className = '', delay = 0, intensity = 'normal', duration = 'default' }) => {
+  const [visible, setVisible] = useState(false);
+  const [flickerState, setFlickerState] = useState(0); // 0 = off, 1-5 = different flicker states
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !visible) {
+          setTimeout(() => {
+            // Start the flickering sequence
+            setFlickerState(1);
+            
+            // Define the flicker sequence based on intensity and duration
+            let sequence = [];
+            
+            if (intensity === 'title') {
+              // Title-specific flickering: fewer flickers, no distortion
+              sequence = [
+                { state: 0, delay: 150 },  // off
+                { state: 1, delay: 70 },   // dim
+                { state: 0, delay: 200 },  // off (longer darkness)
+                { state: 2, delay: 100 },  // brighter
+                { state: 1, delay: 50 },   // dim again
+                { state: 3, delay: 120 },  // even brighter
+                { state: 5, delay: 0 },    // full on
+              ];
+            } else if (intensity === 'strong') {
+              if (duration === 'long') {
+                // Extended LED-like flickering with longer duration
+                sequence = [
+                  { state: 0, delay: 100 },  // off
+                  { state: 1, delay: 80 },   // dim
+                  { state: 0, delay: 150 },  // off
+                  { state: 2, delay: 70 },   // brighter
+                  { state: 0, delay: 200 },  // off (longer darkness)
+                  { state: 1, delay: 50 },   // dim
+                  { state: 0, delay: 80 },   // off
+                  { state: 2, delay: 120 },  // brighter
+                  { state: 1, delay: 60 },   // dim
+                  { state: 3, delay: 100 },  // even brighter
+                  { state: 1, delay: 80 },   // dim again
+                  { state: 0, delay: 120 },  // off (another darkness)
+                  { state: 2, delay: 60 },   // brighter
+                  { state: 3, delay: 150 },  // even brighter
+                  { state: 2, delay: 40 },   // flicker down
+                  { state: 4, delay: 120 },  // almost full
+                  { state: 2, delay: 50 },   // flicker down again
+                  { state: 4, delay: 80 },   // almost full
+                  { state: 5, delay: 0 },    // full on
+                ];
+              } else {
+                // Regular LED-like flickering with pronounced on/off cycles
+                sequence = [
+                  { state: 0, delay: 50 },  // off
+                  { state: 1, delay: 30 },  // dim
+                  { state: 0, delay: 70 },  // off
+                  { state: 2, delay: 40 },  // brighter
+                  { state: 1, delay: 30 },  // dim
+                  { state: 3, delay: 60 },  // even brighter
+                  { state: 0, delay: 20 },  // off
+                  { state: 2, delay: 30 },  // brighter
+                  { state: 4, delay: 40 },  // almost full
+                  { state: 2, delay: 20 },  // brighter
+                  { state: 5, delay: 0 },   // full on
+                ];
+              }
+            } else {
+              // Regular, more subtle flickering
+              sequence = [
+                { state: 0, delay: 100 }, // off
+                { state: 2, delay: 100 }, // dim
+                { state: 0, delay: 100 }, // off
+                { state: 3, delay: 50 },  // brighter
+                { state: 2, delay: 100 }, // dim
+                { state: 5, delay: 0 },   // full on
+              ];
+            }
+            
+            // Execute the sequence
+            let cumulativeDelay = 0;
+            sequence.forEach(step => {
+              setTimeout(() => {
+                setFlickerState(step.state);
+              }, cumulativeDelay);
+              cumulativeDelay += step.delay;
+            });
+            
+            // Finally set to visible after sequence completes
+            setTimeout(() => {
+              setVisible(true);
+            }, cumulativeDelay);
+          }, delay);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.disconnect();
+      }
+    };
+  }, [delay, visible, intensity, duration]);
+
+  // Map flickerState to visual styles
+  const getOpacity = () => {
+    if (!visible) {
+      switch(flickerState) {
+        case 0: return 'opacity-0';
+        case 1: return 'opacity-20';
+        case 2: return 'opacity-40';
+        case 3: return 'opacity-60';
+        case 4: return 'opacity-80';
+        case 5: return 'opacity-100';
+        default: return 'opacity-0';
+      }
+    }
+    return 'opacity-100';
+  };
+
+  // Get any distortion effects based on flicker state
+  const getDistortion = () => {
+    // Don't apply any distortion to title flickering
+    if (intensity === 'title') {
+      return '';
+    }
+    
+    if (!visible && intensity === 'strong') {
+      switch(flickerState) {
+        case 1: return 'scale-[1.02] blur-[0.5px]';
+        case 2: return 'scale-[0.99] blur-[0.2px]';
+        case 3: return 'scale-[1.01]';
+        case 4: return 'scale-[0.995]';
+        default: return '';
+      }
+    }
+    return '';
+  };
+
+  return (
+    <div 
+      ref={ref} 
+      className={`transition-all duration-50 ${getOpacity()} ${getDistortion()} ${className}`}
+    >
+      {children}
+    </div>
+  );
+};
+
 const AnimatedBackground = () => {
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-white z-0 overflow-hidden">
       {/* Subtle dot pattern */}
       <div className="absolute inset-0 opacity-[0.03]" 
            style={{ 
              backgroundImage: 'radial-gradient(black 1px, transparent 0)', 
-             backgroundSize: '40px 40px' 
+             backgroundSize: '40px 40px',
+             transform: `translateY(${scrollY * 0.05}px)` 
            }}>
       </div>
       
-      {/* Minimal gradients */}
-      <div className="absolute -top-[10%] -left-[10%] w-[70%] h-[50%] rounded-full bg-black/[0.02] blur-[80px]"></div>
-      <div className="absolute top-[60%] -right-[5%] w-[50%] h-[60%] rounded-full bg-black/[0.02] blur-[100px]"></div>
+      {/* Minimal gradients with parallax effect */}
+      <div 
+        className="absolute -top-[10%] -left-[10%] w-[70%] h-[50%] rounded-full bg-black/[0.02] blur-[80px]" 
+        style={{ transform: `translate(${scrollY * 0.02}px, ${scrollY * -0.01}px)` }}
+      ></div>
+      <div 
+        className="absolute top-[60%] -right-[5%] w-[50%] h-[60%] rounded-full bg-black/[0.02] blur-[100px]"
+        style={{ transform: `translate(${scrollY * -0.03}px, ${scrollY * 0.02}px)` }}
+      ></div>
     </div>
   );
 };
@@ -110,67 +351,79 @@ const LandingPage = () => {
 
       <div className="relative z-10 w-full overflow-x-hidden">
         {/* Hero Section */}
-        <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-center px-4 py-20">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="space-y-2 mb-6">
-              <p className="uppercase tracking-widest text-xs font-medium">Drop #39</p>
-              <h1 className="text-7xl md:text-9xl font-bold tracking-tight">
-                Not-A-Mac
-              </h1>
+        <ParallaxSection speed={0.05} className="min-h-screen">
+          <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-center px-4 py-20">
+            <div className="max-w-4xl mx-auto text-center">
+              <FlickerIn intensity="title">
+                <div className="space-y-2 mb-6">
+                  <p className="uppercase tracking-widest text-xs font-medium">Drop #39</p>
+                  <h1 className="text-7xl md:text-9xl font-bold tracking-tight">
+                    Not-A-Mac
+                  </h1>
+                </div>
+              </FlickerIn>
+              
+              <FlickerIn delay={900} intensity="normal">
+                <p className="text-lg md:text-xl text-black/70 max-w-lg mx-auto mb-12 font-light">
+                  A minimalist desk accessory that elegantly displays and controls your music
+                </p>
+              </FlickerIn>
+              
+              {/* Countdown */}
+              <FlickerIn delay={1200} intensity="normal">
+                <div className="inline-flex space-x-6 mb-16">
+                  <CountdownItem value={timeLeft.days} label="Days" />
+                  <CountdownSeparator />
+                  <CountdownItem value={timeLeft.hours} label="Hours" />
+                  <CountdownSeparator />
+                  <CountdownItem value={timeLeft.minutes} label="Mins" />
+                  <CountdownSeparator />
+                  <CountdownItem value={timeLeft.seconds} label="Secs" />
+                </div>
+              </FlickerIn>
+              
+              <FlickerIn delay={1500} intensity="normal">
+                <div>
+                  <a href="https://spotify-player-esp32.onrender.com/form" 
+                    className="inline-block px-8 py-3 border border-black transition-all duration-300 hover:bg-black hover:text-white">
+                    Setup Your Device
+                  </a>
+                </div>
+              </FlickerIn>
             </div>
             
-            <p className="text-lg md:text-xl text-black/70 max-w-lg mx-auto mb-12 font-light">
-              A minimalist desk accessory that elegantly displays and controls your music
-            </p>
-            
-            {/* Countdown */}
-            <div className="inline-flex space-x-6 mb-16">
-              <CountdownItem value={timeLeft.days} label="Days" />
-              <CountdownSeparator />
-              <CountdownItem value={timeLeft.hours} label="Hours" />
-              <CountdownSeparator />
-              <CountdownItem value={timeLeft.minutes} label="Mins" />
-              <CountdownSeparator />
-              <CountdownItem value={timeLeft.seconds} label="Secs" />
-            </div>
-            
-            <div>
-              <a href="https://spotify-player-esp32.onrender.com/form" 
-                className="inline-block px-8 py-3 border border-black transition-all duration-300 
-                          hover:bg-black hover:text-white">
-                Setup Your Device
-              </a>
-            </div>
-          </div>
-          
-          <button 
-            onClick={scrollToNextSection}
-            className="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-black/50 hover:text-black
-                     transition-all duration-300 animation-pulse"
-          >
-            <ArrowDown className="w-8 h-8" />
-          </button>
-        </section>
+            <button 
+              onClick={scrollToNextSection}
+              className="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-black/50 hover:text-black transition-all duration-300 animation-pulse"
+            >
+              <ArrowDown className="w-8 h-8" />
+            </button>
+          </section>
+        </ParallaxSection>
 
         {/* Features Section */}
         <section id="features" className="relative py-24 px-4 bg-black text-white">
           <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-20">
-              <p className="uppercase tracking-widest text-xs font-medium text-white/70 mb-2">Features</p>
-              <h2 className="text-3xl md:text-4xl font-light">Thoughtfully Designed</h2>
-            </div>
+            <FadeIn>
+              <div className="text-center mb-20">
+                <p className="uppercase tracking-widest text-xs font-medium text-white/70 mb-2">Features</p>
+                <h2 className="text-3xl md:text-4xl font-light">Thoughtfully Designed</h2>
+              </div>
+            </FadeIn>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-16">
-              {Object.keys(featureDetails).map((key) => (
-                <div key={key}>
-                  <FeatureItem 
-                    id={key}
-                    icon={featureDetails[key].icon}
-                    title={featureDetails[key].title}
-                    description={featureDetails[key].description}
-                    onClick={() => setActiveFeature(key)}
-                  />
-                </div>
+              {Object.keys(featureDetails).map((key, index) => (
+                <FadeIn key={key} delay={index * 150}>
+                  <div>
+                    <FeatureItem 
+                      id={key}
+                      icon={featureDetails[key].icon}
+                      title={featureDetails[key].title}
+                      description={featureDetails[key].description}
+                      onClick={() => setActiveFeature(key)}
+                    />
+                  </div>
+                </FadeIn>
               ))}
             </div>
           </div>
@@ -178,7 +431,10 @@ const LandingPage = () => {
           {/* Feature Modal */}
           {activeFeature && (
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-white text-black max-w-xl w-full p-8 relative">
+              <div 
+                className="bg-white text-black max-w-xl w-full p-8 relative animate-modalEnter"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button 
                   onClick={() => setActiveFeature(null)} 
                   className="absolute top-4 right-4 text-black/50 hover:text-black transition-colors"
@@ -199,65 +455,83 @@ const LandingPage = () => {
         </section>
 
         {/* Product Preview */}
-        <section id="product" className="relative py-24 px-4 bg-white">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-              <div>
-                <p className="uppercase tracking-widest text-xs font-medium text-black/70 mb-2">Coming Soon</p>
-                <h2 className="text-3xl md:text-5xl font-light mb-8">Redefining desktop aesthetics</h2>
-                <p className="text-black/70 text-lg mb-10 leading-relaxed">
-                  A fusion of cutting-edge eco-tech and minimalist design, Not-A-Mac elevates your space while providing 
-                  seamless music control. Limited edition, thoughtfully crafted.
-                </p>
-                <div className="space-y-6">
-                  <StatItem label="Production" value="100% Eco-Friendly" />
-                  <StatItem label="Uniqueness" value="1/1 Numbered Edition" />
-                  <StatItem label="Availability" value="February 2025" />
-                </div>
-              </div>
-              <div className="aspect-square bg-black/5 rounded-md flex items-center justify-center">
-                <Lock className="w-20 h-20 text-black/20" />
+        <ParallaxSection speed={-0.05}>
+          <section id="product" className="relative py-24 px-4 bg-white">
+            <div className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <FadeIn>
+                  <div>
+                    <p className="uppercase tracking-widest text-xs font-medium text-black/70 mb-2">Coming Soon</p>
+                    <h2 className="text-3xl md:text-5xl font-light mb-8">Redefining desktop aesthetics</h2>
+                    <p className="text-black/70 text-lg mb-10 leading-relaxed">
+                      A fusion of cutting-edge eco-tech and minimalist design, Not-A-Mac elevates your space while providing 
+                      seamless music control. Limited edition, thoughtfully crafted.
+                    </p>
+                    <div className="space-y-6">
+                      <StatItem label="Production" value="100% Eco-Friendly" />
+                      <StatItem label="Uniqueness" value="1/1 Numbered Edition" />
+                      <StatItem label="Availability" value="May 2025" />
+                    </div>
+                  </div>
+                </FadeIn>
+                <FadeIn delay={300}>
+                  <div className="aspect-square bg-black/5 rounded-md flex items-center justify-center">
+                    <Lock className="w-20 h-20 text-black/20" />
+                  </div>
+                </FadeIn>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </ParallaxSection>
 
         {/* Manifesto */}
-        <section id="manifesto" className="relative py-24 px-4 bg-black text-white">
-          <div className="max-w-3xl mx-auto text-center">
-            <p className="text-2xl md:text-3xl font-light leading-relaxed">
-              &ldquo;Be what you could be.&rdquo;
-            </p>
-            <p className="mt-8 text-sm text-white/60 uppercase tracking-widest">
-              Not-A-Mac Manifesto
-            </p>
-          </div>
-        </section>
+        <ParallaxSection speed={0.1}>
+          <section id="manifesto" className="relative py-24 px-4 bg-black text-white">
+            <div className="max-w-3xl mx-auto text-center">
+              <FlickerIn>
+                <p className="text-2xl md:text-3xl font-light leading-relaxed">
+                  &ldquo;Be what you could be.&rdquo;
+                </p>
+              </FlickerIn>
+              <FlickerIn delay={600}>
+                <p className="mt-8 text-sm text-white/60 uppercase tracking-widest">
+                  Not-A-Mac Manifesto
+                </p>
+              </FlickerIn>
+            </div>
+          </section>
+        </ParallaxSection>
 
         {/* Footer */}
         <footer id="footer" className="relative py-12 px-4 border-t border-black/10 bg-white">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
-              <div>
-                <p className="text-sm font-medium mb-3">Not-A-Mac</p>
-                <p className="text-sm text-black/60">
-                  An aesthetic desk accessory for music lovers and design enthusiasts.
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium mb-3">Links</p>
-                <div className="space-y-2">
-                  <p><a href="#" className="text-sm text-black/60 hover:text-black">Setup Device</a></p>
-                  <p><a href="#" className="text-sm text-black/60 hover:text-black">Support</a></p>
-                  <p><a href="#" className="text-sm text-black/60 hover:text-black">Privacy Policy</a></p>
+              <FadeIn>
+                <div>
+                  <p className="text-sm font-medium mb-3">Not-A-Mac</p>
+                  <p className="text-sm text-black/60">
+                    An aesthetic desk accessory for music lovers and design enthusiasts.
+                  </p>
                 </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium mb-3">Connect</p>
-                <p className="text-sm text-black/60">
-                  For inquiries, please email us at hello@notamac.com
-                </p>
-              </div>
+              </FadeIn>
+              <FadeIn delay={200}>
+                <div>
+                  <p className="text-sm font-medium mb-3">Links</p>
+                  <div className="space-y-2">
+                    <p><a href="#" className="text-sm text-black/60 hover:text-black">Setup Device</a></p>
+                    <p><a href="#" className="text-sm text-black/60 hover:text-black">Support</a></p>
+                    <p><a href="#" className="text-sm text-black/60 hover:text-black">Privacy Policy</a></p>
+                  </div>
+                </div>
+              </FadeIn>
+              <FadeIn delay={400}>
+                <div>
+                  <p className="text-sm font-medium mb-3">Connect</p>
+                  <p className="text-sm text-black/60">
+                    For inquiries, please email us at hello@notamac.com
+                  </p>
+                </div>
+              </FadeIn>
             </div>
             <div className="pt-10 border-t border-black/10 text-center">
               <p className="text-xs text-black/50">© 2025 Not-A-Mac. All rights reserved.</p>
@@ -265,6 +539,17 @@ const LandingPage = () => {
           </div>
         </footer>
       </div>
+
+      {/* Add custom animations to global styles */}
+      <style jsx global>{`
+        @keyframes modalEnter {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-modalEnter {
+          animation: modalEnter 0.3s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
