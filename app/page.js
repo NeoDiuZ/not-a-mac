@@ -384,7 +384,7 @@ const LandingPage = () => {
               
               <FlickerIn delay={1500} intensity="normal">
                 <div>
-                  <a href="https://spotify-player-esp32.onrender.com/form" 
+                  <a href="/setup" 
                     className="inline-block px-8 py-3 border border-black transition-all duration-300 hover:bg-black hover:text-white">
                     Setup Your Device
                   </a>

@@ -113,7 +113,7 @@ export async function POST(request) {
     }
 
     console.log('Storing refresh token for device:', deviceId);
-    const storeResult = await dataModel.storeRefreshToken({ id: deviceId, refreshToken });
+    const storeResult = await dataModel.storeRefreshToken({ id: deviceId, refresh_token: refreshToken });
     console.log('Store result:', storeResult);
     
     if (!storeResult.success) {

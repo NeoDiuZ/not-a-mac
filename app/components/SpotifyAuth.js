@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Music } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useSpotify } from './SpotifyProvider';
-import CurrentlyPlaying from './CurrentlyPlaying';
 
 export default function SpotifyAuth() {
   const { isAuthenticated, loading, refreshAuth } = useSpotify();
@@ -69,7 +68,6 @@ export default function SpotifyAuth() {
               </div>
               <p className="text-white/80">Your Spotify account is connected</p>
             </div>
-            <CurrentlyPlaying />
           </div>
         ) : (
           <div className="max-w-md mx-auto">

@@ -109,10 +109,10 @@ const dataModel = {
   },
 
   // Store refresh token for a user
-  async storeRefreshToken({ id, refreshToken }) {
+  async storeRefreshToken({ id, refresh_token }) {
     const query = {
       text: 'UPDATE setup SET refresh_token = $1 WHERE id = $2',
-      values: [refreshToken, id],
+      values: [refresh_token, id],
     };
     
     try {
