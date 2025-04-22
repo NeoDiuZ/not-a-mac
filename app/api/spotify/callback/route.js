@@ -22,7 +22,7 @@ export async function GET(request) {
 
   // 2. Parse the code & state from the URL
   const { searchParams } = new URL(request.url);
-  const code     = searchParams.get('code');
+  const code = searchParams.get('code');
   const deviceId = searchParams.get('state');
 
   if (!code || !deviceId) {
@@ -43,14 +43,14 @@ export async function GET(request) {
 
   // 4. Exchange code for tokens
   const params = new URLSearchParams({
-    grant_type:   'authorization_code',
+    grant_type: 'authorization_code',
     code,
     redirect_uri: process.env.SPOTIFY_REDIRECT_URI
   });
   const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: {
-      'Content-Type':  'application/x-www-form-urlencoded',
+      'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': 'Basic ' + Buffer.from(
         `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
       ).toString('base64')
@@ -72,16 +72,17 @@ export async function GET(request) {
     console.error('No refresh token returned:', data);
     return NextResponse.json({ error: 'No refresh token from Spotify' }, { status: 400 });
   }
+  
   const store = await dataModel.storeRefreshToken({
-    id:            deviceId,
+    id: deviceId,
     refresh_token: data.refresh_token
   });
+  
   if (!store.success) {
     console.error('Failed to store token:', store.error);
     return NextResponse.json({ error: 'Failed to persist refresh token' }, { status: 500 });
   }
 
-  // 6. Respond however your front end expects
-  //    (you might redirect them into your app)
+  // 6. Redirect to success page
   return NextResponse.redirect(`/success?device=${deviceId}`);
 }
