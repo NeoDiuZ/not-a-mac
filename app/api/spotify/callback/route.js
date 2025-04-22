@@ -84,5 +84,7 @@ export async function GET(request) {
   }
 
   // 6. Redirect to success page
-  return NextResponse.redirect(`/success?device=${deviceId}`);
+  const url = new URL(request.url);
+  const baseUrl = `${url.protocol}//${url.host}`;
+  return NextResponse.redirect(`${baseUrl}/success?device=${deviceId}`);
 }
