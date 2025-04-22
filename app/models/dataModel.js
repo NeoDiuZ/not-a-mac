@@ -64,47 +64,69 @@ const dataModel = {
       console.log('Database query successful, received rows:', result.rows.length);
       return { success: true, rows: result.rows.map(row => ({ refresh_token: row.refresh_token })) };
     } catch (error) {
-      console.error('Error checking refresh token:', {
-        message: error.message,
-        stack: error.stack,
-        code: error.code,
-        detail: error.detail
-      });
-      return { success: false, error };
+      let type = 'DB_UNKNOWN';
+      if (error.code === 'ENOTFOUND') type = 'DB_HOST_UNREACHABLE';
+      else if (error.code === 'ECONNREFUSED') type = 'DB_CONNECTION_REFUSED';
+
+      return { 
+        success: false, 
+        error: {
+          type,
+          message: error.message,
+          code: error.code,
+        }
+      };
     }
   },
 
   // Register a new user
   async registerUser({ id }) {
     try {
-      // Check if user already exists
+      // 1. Check if user already exists
       const checkQuery = {
         text: 'SELECT id FROM setup WHERE id = $1',
         values: [id],
       };
-      
       const existingUser = await pool.query(checkQuery);
-      
+  
       if (existingUser.rows.length > 0) {
         return { success: false, message: 'User already exists' };
       }
-      
-      // Insert new user with empty token
+  
+      // 2. Insert new user with empty token
       const insertQuery = {
         text: 'INSERT INTO setup (id, refresh_token) VALUES ($1, $2)',
         values: [id, ''],
       };
-      
       await pool.query(insertQuery);
+  
       return { success: true };
     } catch (error) {
-      console.error('Detailed error in registerUser:', {
-        message: error.message,
-        stack: error.stack,
-        code: error.code,
-        detail: error.detail
-      });
-      return { success: false, error: error.message };
+      let type = 'DB_UNKNOWN';
+      switch (error.code) {
+        case 'ENOTFOUND':
+          type = 'DB_HOST_UNREACHABLE';
+          break;
+        case 'ECONNREFUSED':
+          type = 'DB_CONNECTION_REFUSED';
+          break;
+        case '28P01':
+          type = 'DB_AUTHENTICATION_FAILED';
+          break;
+        case '57P01':
+          type = 'DB_CONNECTION_LOST';
+          break;
+        // add more mappings here as you discover other error codes
+      }
+  
+      return {
+        success: false,
+        error: {
+          type,
+          message: error.message,
+          code: error.code
+        }
+      };
     }
   },
 

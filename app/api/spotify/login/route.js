@@ -28,7 +28,8 @@ export async function GET(request) {
     client_id: process.env.SPOTIFY_CLIENT_ID,
     scope: scope,
     redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-    state: state
+    state: state,
+    show_dialog: true
   });
 
   const spotifyAuthUrl = `https://accounts.spotify.com/authorize?${params}`;

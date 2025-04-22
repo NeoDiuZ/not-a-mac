@@ -16,7 +16,7 @@ export default function SpotifyAuth() {
 
   const fetchAuthUrl = async () => {
     try {
-      const response = await fetch('/api/spotify/auth-url');
+      const response = await fetch('/api/spotify/login');
       const data = await response.json();
       setAuthUrl(data.url);
     } catch (error) {
