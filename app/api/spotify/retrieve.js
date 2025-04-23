@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import dataModel from '../../../models/dataModel';
+import dataModel from '../../models/dataModel';
 
 export async function POST(request) {
   let body;
