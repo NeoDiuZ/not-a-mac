@@ -81,7 +81,7 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Failed to persist refresh token' }, { status: 500 });
   }
 
-  // 6. Respond however your front end expects
-  //    (you might redirect them into your app)
-  return NextResponse.redirect(`/success?device=${deviceId}`);
+  // Use the request itself to build the redirect URL
+  const redirectUrl = new URL(`/success?device=${deviceId}`, request.url);
+  return NextResponse.redirect(redirectUrl);
 }
