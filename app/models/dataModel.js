@@ -144,6 +144,63 @@ const dataModel = {
       console.error('Error storing refresh token:', error);
       return { success: false, error };
     }
+  },
+
+  // Add a user to the waitlist
+  async addToWaitlist({ email, name, color, address }) {
+    try {
+      // 1. Check if email already exists in waitlist
+      const checkQuery = {
+        text: 'SELECT email FROM waitlist WHERE email = $1',
+        values: [email],
+      };
+      const existingEntry = await pool.query(checkQuery);
+  
+      if (existingEntry.rows.length > 0) {
+        return { success: false, message: 'Email already on waitlist' };
+      }
+  
+      // 2. Insert new waitlist entry
+      const insertQuery = {
+        text: 'INSERT INTO waitlist (email, name, color, address, created_at) VALUES ($1, $2, $3, $4, NOW())',
+        values: [email, name, color, address],
+      };
+      await pool.query(insertQuery);
+  
+      return { success: true };
+    } catch (error) {
+      console.error('Error adding to waitlist:', error);
+      return { 
+        success: false, 
+        error: {
+          type: 'DB_ERROR',
+          message: error.message,
+          code: error.code
+        }
+      };
+    }
+  },
+
+  // Get all waitlist entries
+  async getWaitlist() {
+    try {
+      const query = {
+        text: 'SELECT * FROM waitlist ORDER BY created_at DESC',
+      };
+      const result = await pool.query(query);
+      
+      return { success: true, entries: result.rows };
+    } catch (error) {
+      console.error('Error getting waitlist:', error);
+      return { 
+        success: false, 
+        error: {
+          type: 'DB_ERROR',
+          message: error.message,
+          code: error.code
+        }
+      };
+    }
   }
 };
 
