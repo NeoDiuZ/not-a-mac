@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
 import { Clock, ShoppingBag, Sparkles, Recycle, Bot, Lock, Music, Heart, Globe, Zap, Star, Award, ArrowDown, Plus, X } from 'lucide-react';
+import Image from 'next/image';
 
 // Parallax and animation components
 const ParallaxSection = ({ children, speed = 0.1, className = '' }) => {
@@ -29,7 +30,7 @@ const ParallaxSection = ({ children, speed = 0.1, className = '' }) => {
   );
 };
 
-const FadeIn = ({ children, className = '', delay = 0 }) => {
+const FadeIn = ({ children, className = '', delay = 0, applyClass = false }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
 
@@ -60,8 +61,8 @@ const FadeIn = ({ children, className = '', delay = 0 }) => {
       ref={ref}
       className={`transition-all duration-1000 ${
         isVisible 
-          ? 'opacity-100 translate-y-0 filter-none'
-          : 'opacity-0 translate-y-4 blur-[2px]'
+          ? (applyClass ? 'fade-in-visible ' : 'opacity-100 translate-y-0 filter-none')
+          : (applyClass ? '' : 'opacity-0 translate-y-4 blur-[2px]')
       } ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
@@ -458,27 +459,84 @@ const LandingPage = () => {
         <ParallaxSection speed={-0.05}>
           <section id="product" className="relative py-24 px-4 bg-white">
             <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-                <FadeIn>
-                  <div>
-                    <p className="uppercase tracking-widest text-xs font-medium text-black/70 mb-2">Coming Soon</p>
-                    <h2 className="text-3xl md:text-5xl font-light mb-8">Redefining desktop aesthetics</h2>
-                    <p className="text-black/70 text-lg mb-10 leading-relaxed">
-                      A fusion of cutting-edge eco-tech and minimalist design, Not-A-Mac elevates your space while providing 
-                      seamless music control. Limited edition, thoughtfully crafted.
-                    </p>
-                    <div className="space-y-6">
-                      <StatItem label="Production" value="100% Eco-Friendly" />
-                      <StatItem label="Uniqueness" value="1/1 Numbered Edition" />
-                      <StatItem label="Availability" value="May 2025" />
+              <FadeIn>
+                <div className="text-center mb-16">
+                  <p className="uppercase tracking-widest text-xs font-medium text-black/70 mb-2">Collection</p>
+                  <h2 className="text-3xl md:text-5xl font-light mb-8">Elevate your space</h2>
+                  <p className="text-black/70 text-lg max-w-2xl mx-auto leading-relaxed">
+                    A fusion of cutting-edge eco-tech and minimalist design, Not-A-Mac elevates your space while providing 
+                    seamless music control. Limited edition, thoughtfully crafted.
+                  </p>
+                </div>
+              </FadeIn>
+
+              {/* Gift Box Animation Container */}
+              <FadeIn applyClass={true} className="product-animation-container">
+                <div className="relative h-[800px] mb-16">
+                  {/* Box Lid Animation */}
+                  <div className="gift-box-lid absolute top-1/3 left-1/2 transform -translate-x-1/2 w-[400px] h-[40px] bg-black/10 rounded-md"></div>
+                  
+                  {/* Box Base - Hidden */}
+                  {/* <div className="gift-box-base absolute top-1/3 left-1/2 transform -translate-x-1/2 translate-y-[15px] w-[300px] h-[30px] bg-black/20 rounded-md"></div> */}
+                  
+                  {/* Pillars Container */}
+                  <div className="pillars-container absolute top-0 left-0 w-full h-full flex justify-center items-end">
+                    {/* Marble Pillar */}
+                    <div className="pillar-wrapper mx-20 flex flex-col items-center relative">
+                      <div className="product-image marble-product absolute bottom-[450px] w-[240px] h-[240px] overflow-hidden z-20">
+                        <Image 
+                          src="/marble_nam.png" 
+                          alt="Marble Not-A-Mac" 
+                          fill
+                          className="object-contain"
+                          priority
+                          style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
+                        />
+                      </div>
+                      <div className="pillar w-[160px] h-[400px] bg-gradient-to-b from-gray-300 to-gray-100 rounded-t-md z-10 relative"></div>
+                      <p className="mt-4 text-sm font-medium uppercase tracking-wider">Marble</p>
+                    </div>
+                    
+                    {/* Ivory Pillar */}
+                    <div className="pillar-wrapper mx-20 flex flex-col items-center relative">
+                      <div className="product-image ivory-product absolute bottom-[490px] w-[240px] h-[240px] overflow-hidden z-20">
+                        <Image 
+                          src="/ivory_nam.png" 
+                          alt="Ivory Not-A-Mac" 
+                          fill
+                          className="object-contain"
+                          priority
+                          style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
+                        />
+                      </div>
+                      <div className="pillar w-[160px] h-[440px] bg-gradient-to-b from-yellow-100 to-yellow-50 rounded-t-md z-10 relative"></div>
+                      <p className="mt-4 text-sm font-medium uppercase tracking-wider">Ivory</p>
+                    </div>
+                    
+                    {/* Sakura Pillar */}
+                    <div className="pillar-wrapper mx-20 flex flex-col items-center relative">
+                      <div className="product-image sakura-product absolute bottom-[450px] w-[240px] h-[240px] overflow-hidden z-20">
+                        <Image 
+                          src="/sakura_nam.png" 
+                          alt="Sakura Not-A-Mac" 
+                          fill
+                          className="object-contain"
+                          priority
+                          style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
+                        />
+                      </div>
+                      <div className="pillar w-[160px] h-[400px] bg-gradient-to-b from-pink-200 to-pink-100 rounded-t-md z-10 relative"></div>
+                      <p className="mt-4 text-sm font-medium uppercase tracking-wider">Sakura</p>
                     </div>
                   </div>
-                </FadeIn>
-                <FadeIn delay={300}>
-                  <div className="aspect-square bg-black/5 rounded-md flex items-center justify-center">
-                    <Lock className="w-20 h-20 text-black/20" />
-                  </div>
-                </FadeIn>
+                </div>
+              </FadeIn>
+              
+              <div className="max-w-lg mx-auto">
+                <div className="space-y-6">
+                  <StatItem label="Production" value="100% Eco-Friendly" />
+                  <StatItem label="Availability" value="May 2025" />
+                </div>
               </div>
             </div>
           </section>
@@ -548,6 +606,76 @@ const LandingPage = () => {
         }
         .animate-modalEnter {
           animation: modalEnter 0.3s ease-out forwards;
+        }
+        
+        /* Make sure product animation container is visible initially */
+        .product-animation-container {
+          opacity: 1;
+          transform: none;
+          filter: none;
+        }
+        
+        /* Gift box animations */
+        .gift-box-lid {
+          opacity: 0;
+          transform: translate(-50%, 0) rotateX(0deg);
+          transform-origin: center bottom;
+        }
+        
+        .fade-in-visible .gift-box-lid {
+          animation: openLid 1.5s ease-in-out forwards;
+        }
+        
+        @keyframes openLid {
+          0% { transform: translate(-50%, 0) rotateX(0deg); opacity: 1; }
+          50% { transform: translate(-50%, -50px) rotateX(-60deg); opacity: 0.7; }
+          100% { transform: translate(-50%, -100px) rotateX(-90deg); opacity: 0; }
+        }
+        
+        /* Pillar animations */
+        .pillar {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        
+        .fade-in-visible .pillar {
+          animation: risePillar 1.5s ease-out forwards;
+          animation-delay: 0.7s;
+        }
+        
+        @keyframes risePillar {
+          0% { transform: translateY(100%); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Product image animations */
+        .product-image {
+          opacity: 0;
+          transform: translateY(0);
+          background: transparent;
+        }
+        
+        .fade-in-visible .product-image {
+          animation: floatProduct 3s ease-out forwards, bobUpDown 3s ease-in-out infinite;
+          animation-delay: 1.7s, 4.7s;
+        }
+        
+        .fade-in-visible .ivory-product {
+          animation-delay: 1.9s, 4.9s;
+        }
+        
+        .fade-in-visible .sakura-product {
+          animation-delay: 2.1s, 5.1s;
+        }
+        
+        @keyframes floatProduct {
+          0% { transform: translateY(20px); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes bobUpDown {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
         }
       `}</style>
     </div>
