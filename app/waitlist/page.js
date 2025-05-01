@@ -107,7 +107,7 @@ export default function Waitlist() {
           <div className="mb-8 border border-gray-200 rounded-lg bg-gray-50 p-4">
             <div className="flex justify-between items-center mb-2">
               <span className="text-gray-600">Not-A-Mac Device</span>
-              <span className="font-medium">SGD 50.00</span>
+              <span className="font-medium">SGD 40.00</span>
             </div>
             <div className="flex justify-between items-center text-sm text-gray-500 pb-2 border-b border-gray-200">
               <span>Early Bird Pricing</span>
@@ -119,7 +119,7 @@ export default function Waitlist() {
             </div>
             <div className="flex justify-between items-center pt-2 font-semibold">
               <span>Total</span>
-              <span>SGD 40.00</span>
+              <span>SGD 30.00</span>
             </div>
           </div>
 
