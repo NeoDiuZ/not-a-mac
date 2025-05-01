@@ -470,22 +470,14 @@ const LandingPage = () => {
                 </div>
               </FadeIn>
 
-              {/* Gift Box Animation Container */}
-              <FadeIn applyClass={true} className="product-animation-container">
-                <div className="relative h-[800px] mb-16">
-                  {/* Box Lid Animation */}
-                  <div className="gift-box-lid absolute top-1/3 left-1/2 transform -translate-x-1/2 w-[400px] h-[40px] bg-black/10 rounded-md"></div>
-                  
-                  {/* Box Base - Hidden */}
-                  {/* <div className="gift-box-base absolute top-1/3 left-1/2 transform -translate-x-1/2 translate-y-[15px] w-[300px] h-[30px] bg-black/20 rounded-md"></div> */}
-                  
-                  {/* Pillars Container */}
-                  <div className="pillars-container absolute top-0 left-0 w-full h-full flex justify-center items-end">
-                    {/* Marble Pillar */}
-                    <div className="pillar-wrapper mx-20 flex flex-col items-center relative">
-                      <div className="product-image marble-product absolute bottom-[450px] w-[240px] h-[240px] overflow-hidden z-20">
+              <div className="space-y-32">
+                {/* Marble Product */}
+                <FadeIn>
+                  <div className="flex items-center justify-between gap-16">
+                    <div className="w-1/2">
+                      <div className="relative w-full aspect-square">
                         <Image 
-                          src="/marble_nam.png" 
+                          src="/marble_nam.jpeg" 
                           alt="Marble Not-A-Mac" 
                           fill
                           className="object-contain"
@@ -493,13 +485,23 @@ const LandingPage = () => {
                           style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
                         />
                       </div>
-                      <div className="pillar w-[160px] h-[400px] bg-gradient-to-b from-gray-300 to-gray-100 rounded-t-md z-10 relative"></div>
-                      <p className="mt-4 text-sm font-medium uppercase tracking-wider">Marble</p>
                     </div>
-                    
-                    {/* Ivory Pillar */}
-                    <div className="pillar-wrapper mx-20 flex flex-col items-center relative">
-                      <div className="product-image ivory-product absolute bottom-[490px] w-[240px] h-[240px] overflow-hidden z-20">
+                    <div className="w-1/2 space-y-6">
+                      <p className="text-sm font-medium text-black/60">No. 001</p>
+                      <h3 className="text-4xl font-light">Marble</h3>
+                      <p className="text-black/70 leading-relaxed">
+                        Crafted from premium recycled materials, the Marble edition brings a touch of classic elegance to your workspace. 
+                        Its subtle patterns and textures make each piece uniquely yours.
+                      </p>
+                    </div>
+                  </div>
+                </FadeIn>
+
+                {/* Ivory Product */}
+                <FadeIn>
+                  <div className="flex items-center justify-between gap-16">
+                    <div className="w-1/2">
+                      <div className="relative w-full aspect-square">
                         <Image 
                           src="/ivory_nam.png" 
                           alt="Ivory Not-A-Mac" 
@@ -509,15 +511,25 @@ const LandingPage = () => {
                           style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
                         />
                       </div>
-                      <div className="pillar w-[160px] h-[440px] bg-gradient-to-b from-yellow-100 to-yellow-50 rounded-t-md z-10 relative"></div>
-                      <p className="mt-4 text-sm font-medium uppercase tracking-wider">Ivory</p>
                     </div>
-                    
-                    {/* Sakura Pillar */}
-                    <div className="pillar-wrapper mx-20 flex flex-col items-center relative">
-                      <div className="product-image sakura-product absolute bottom-[450px] w-[240px] h-[240px] overflow-hidden z-20">
+                    <div className="w-1/2 space-y-6">
+                      <p className="text-sm font-medium text-black/60">No. 002</p>
+                      <h3 className="text-4xl font-light">Ivory</h3>
+                      <p className="text-black/70 leading-relaxed">
+                        The Ivory edition embodies minimalist perfection with its clean lines and pure form. 
+                        Its warm, neutral tone complements any environment while maintaining a strong presence.
+                      </p>
+                    </div>
+                  </div>
+                </FadeIn>
+
+                {/* Sakura Product */}
+                <FadeIn>
+                  <div className="flex items-center justify-between gap-16">
+                    <div className="w-1/2">
+                      <div className="relative w-full aspect-square">
                         <Image 
-                          src="/sakura_nam.png" 
+                          src="/sakura_nam.jpeg" 
                           alt="Sakura Not-A-Mac" 
                           fill
                           className="object-contain"
@@ -525,14 +537,20 @@ const LandingPage = () => {
                           style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
                         />
                       </div>
-                      <div className="pillar w-[160px] h-[400px] bg-gradient-to-b from-pink-200 to-pink-100 rounded-t-md z-10 relative"></div>
-                      <p className="mt-4 text-sm font-medium uppercase tracking-wider">Sakura</p>
+                    </div>
+                    <div className="w-1/2 space-y-6">
+                      <p className="text-sm font-medium text-black/60">No. 003</p>
+                      <h3 className="text-4xl font-light">Sakura</h3>
+                      <p className="text-black/70 leading-relaxed">
+                        Inspired by Japanese cherry blossoms, the Sakura edition brings a gentle touch of nature to your desk. 
+                        Its soft pink hue creates a calming atmosphere in any space.
+                      </p>
                     </div>
                   </div>
-                </div>
-              </FadeIn>
-              
-              <div className="max-w-lg mx-auto">
+                </FadeIn>
+              </div>
+
+              <div className="max-w-lg mx-auto mt-24">
                 <div className="space-y-6">
                   <StatItem label="Production" value="100% Eco-Friendly" />
                   <StatItem label="Availability" value="May 2025" />
