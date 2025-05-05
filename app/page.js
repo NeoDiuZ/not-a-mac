@@ -266,6 +266,12 @@ const LandingPage = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [activeFeature, setActiveFeature] = useState(null);
   const heroRef = useRef(null);
+  const [mounted, setMounted] = useState(false);
+  
+  // Add mounted state to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Countdown timer
   useEffect(() => {
@@ -476,14 +482,16 @@ const LandingPage = () => {
                   <div className="flex items-center justify-between gap-16">
                     <div className="w-1/2">
                       <div className="relative w-full aspect-square">
-                        <Image 
-                          src="/marble_nam.jpeg" 
-                          alt="Marble Not-A-Mac" 
-                          fill
-                          className="object-contain"
-                          priority
-                          style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
-                        />
+                        {mounted && (
+                          <Image 
+                            src="/images/marble_nam.jpeg" 
+                            alt="Marble Not-A-Mac" 
+                            fill
+                            className="object-contain"
+                            priority
+                            style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
+                          />
+                        )}
                       </div>
                     </div>
                     <div className="w-1/2 space-y-6">
@@ -502,14 +510,15 @@ const LandingPage = () => {
                   <div className="flex items-center justify-between gap-16">
                     <div className="w-1/2">
                       <div className="relative w-full aspect-square">
-                        <Image 
-                          src="/ivory_nam.png" 
-                          alt="Ivory Not-A-Mac" 
-                          fill
-                          className="object-contain"
-                          priority
-                          style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
-                        />
+                        {/* Use standard img tag for now to troubleshoot */}
+                        {mounted && (
+                          <img 
+                            src="/images/ivory_nam.jpeg" 
+                            alt="Ivory Not-A-Mac"
+                            className="w-full h-full object-contain"
+                            style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
+                          />
+                        )}
                       </div>
                     </div>
                     <div className="w-1/2 space-y-6">
@@ -528,14 +537,16 @@ const LandingPage = () => {
                   <div className="flex items-center justify-between gap-16">
                     <div className="w-1/2">
                       <div className="relative w-full aspect-square">
-                        <Image 
-                          src="/sakura_nam.jpeg" 
-                          alt="Sakura Not-A-Mac" 
-                          fill
-                          className="object-contain"
-                          priority
-                          style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
-                        />
+                        {mounted && (
+                          <Image 
+                            src="/images/sakura_nam.jpeg" 
+                            alt="Sakura Not-A-Mac" 
+                            fill
+                            className="object-contain"
+                            priority
+                            style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
+                          />
+                        )}
                       </div>
                     </div>
                     <div className="w-1/2 space-y-6">
